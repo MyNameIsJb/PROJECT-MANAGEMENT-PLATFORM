@@ -1,3 +1,4 @@
+import { Request } from "express";
 import { Types } from "mongoose";
 
 export interface IUser extends Document {
@@ -46,4 +47,13 @@ export interface ITask extends Document {
   dueDate?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+}
+
+export interface AuthRequest extends Request {
+  user?: AuthUser;
 }
