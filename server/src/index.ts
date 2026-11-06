@@ -2,7 +2,11 @@ import express, { Application } from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
 import cors from "cors";
-import { errorHandler } from "./middleware/errorHandler";
+
+import authRoutes from "./routes/authRoutes";
+import workspaceRoutes from "./routes/workspaceRoutes";
+import boardRoutes from "./routes/boardRoutes";
+import taskRoutes from "./routes/taskRoutes";
 
 dotenv.config();
 
@@ -20,8 +24,13 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
+app.use("/api/auth", authRoutes);
+app.use("/api/workspaces", workspaceRoutes);
+app.use("/api/boards", boardRoutes);
+app.use("/api/tasks", taskRoutes);
+
 app.get("/", (req, res) => {
-  res.send("Hello from TS + Express");
+  res.send("Hello from TS + Express TaskFlow API");
 });
 
 app.use((req, res) => {
@@ -30,8 +39,6 @@ app.use((req, res) => {
     error: `Cannot Find ${req.method} ${req.originalUrl}`,
   });
 });
-
-app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`✅ Server is running at http://localhost:${PORT}`);
