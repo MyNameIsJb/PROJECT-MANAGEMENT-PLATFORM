@@ -3,19 +3,12 @@ import { IWorkspace } from "../types";
 
 const workspaceSchema = new Schema<IWorkspace>(
   {
-    name: { type: String, required: true, trim: true },
+    name: { type: String, required: true },
+    key: { type: String, required: true, uppercase: true },
+    description: { type: String },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    members: [
-      {
-        user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-        role: { type: String, enum: ["admin", "member"], default: "member" },
-      },
-    ],
   },
   { timestamps: true },
 );
 
-export const Workspace = mongoose.model<IWorkspace>(
-  "Workspace",
-  workspaceSchema,
-);
+export default mongoose.model<IWorkspace>("Workspace", workspaceSchema);

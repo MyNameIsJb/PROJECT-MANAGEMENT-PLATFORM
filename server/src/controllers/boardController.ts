@@ -1,48 +1,29 @@
 import { Response } from "express";
+import Board from "../models/Board";
 import { AuthRequest } from "../types";
-import { Board } from "../models/Board";
 
 export const createBoard = async (
   req: AuthRequest,
   res: Response,
-): Promise<any> => {
+): Promise<void> => {
   try {
-    const { workspaceId, title, columns } = req.body;
-
-    if (!workspaceId || !title) {
-      return res.status(400).json({
-        success: false,
-        message: "Workspace ID and title are required",
-      });
-    }
-
-    const board = await Board.create({
-      workspaceId,
-      title,
-      columns: columns || ["To Do", "In Progress", "Done"],
-    });
-
-    return res.status(201).json({ succes: true, board });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error creating board", error });
+    const { name, workspaceId } = req.body;
+    const board = await Board.create({ name, workspaceId });
+    res.status(201).json(board);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
 };
 
 export const getBoardsByWorkspace = async (
   req: AuthRequest,
   res: Response,
-): Promise<any> => {
+): Promise<void> => {
   try {
     const { workspaceId } = req.params;
-
     const boards = await Board.find({ workspaceId });
-
-    return res.status(200).json({ success: true, boards });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error fetching boards", error });
+    res.json(boards);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
 };

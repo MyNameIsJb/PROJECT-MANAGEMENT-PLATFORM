@@ -3,25 +3,23 @@ import { ITask } from "../types";
 
 const taskSchema = new Schema<ITask>(
   {
-    boardId: {
-      type: Schema.Types.ObjectId,
-      ref: "Board",
-      required: true,
-      index: true,
+    title: { type: String, required: true },
+    description: { type: String },
+    status: {
+      type: String,
+      enum: ["todo", "in_progress", "done"],
+      default: "todo",
     },
-    title: { type: String, required: true, trim: true },
-    description: { type: String, default: "" },
-    column: { type: String, required: true },
-    order: { type: Number, default: 0 },
-    assignees: [{ type: Schema.Types.ObjectId, ref: "User" }],
     priority: {
       type: String,
-      enum: ["low", "medium", "high", "urgent"],
+      enum: ["low", "medium", "high"],
       default: "medium",
     },
-    dueDate: { type: Date },
+    boardId: { type: Schema.Types.ObjectId, ref: "Board", required: true },
+    assignee: { type: String },
+    position: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
 
-export const Task = mongoose.model<ITask>("Task", taskSchema);
+export default mongoose.model<ITask>("Task", taskSchema);

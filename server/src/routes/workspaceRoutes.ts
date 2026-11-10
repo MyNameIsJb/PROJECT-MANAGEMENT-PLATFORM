@@ -8,7 +8,6 @@ import {
 const router = Router();
 
 router.use(protect);
-
 router.post("/", createWorkspace);
 router.get("/", getWorkspaces);
 

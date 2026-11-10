@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 export interface IUser extends Document {
   _id: Types.ObjectId;
@@ -20,31 +20,31 @@ export interface IWorkspaceMember {
 
 export interface IWorkspace extends Document {
   name: string;
-  owner: Types.ObjectId;
-  members: IWorkspaceMember[];
+  key: string;
+  description?: string;
+  owner: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface IBoard extends Document {
-  workspaceId: Types.ObjectId;
-  title: string;
-  columns: string[];
+  name: string;
+  workspaceId: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
+export type TaskStatus = "todo" | "in_progress" | "done";
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 
 export interface ITask extends Document {
-  boardId: Types.ObjectId;
   title: string;
-  description: string;
-  column: string;
-  order: number;
-  assignees: Types.ObjectId[];
+  description?: string;
+  status: TaskStatus;
   priority: TaskPriority;
-  dueDate?: Date;
+  boardId: mongoose.Types.ObjectId;
+  assignee?: string;
+  position: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -55,5 +55,5 @@ export interface AuthUser {
 }
 
 export interface AuthRequest extends Request {
-  user?: AuthUser;
+  user?: IUser & { _id: any };
 }

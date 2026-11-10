@@ -1,95 +1,65 @@
 import { Response } from "express";
+import Task from "../models/Task";
 import { AuthRequest } from "../types";
-import { Task } from "../models/Task";
 
 export const createTask = async (
   req: AuthRequest,
   res: Response,
-): Promise<any> => {
+): Promise<void> => {
   try {
-    const {
-      boardId,
+    const { title, description, status, priority, boardId, assignee } =
+      req.body;
+    const task = await Task.create({
       title,
       description,
-      column,
-      assignees,
-      priority,
-      dueDate,
-    } = req.body;
-
-    if (!boardId || !title || !column) {
-      return res.status(400).json({
-        success: false,
-        message: "Board ID, title, and column are required",
-      });
-    }
-
-    const task = await Task.create({
-      boardId,
-      title,
-      description: description || "",
-      column,
-      assignees: assignees || [],
+      status: status || "todo",
       priority: priority || "medium",
-      dueDate,
+      boardId,
+      assignee,
     });
-
-    return res.status(201).json({ success: true, task });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error creating task", error });
+    res.status(201).json(task);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
 };
 
 export const getTasksByBoard = async (
   req: AuthRequest,
   res: Response,
-): Promise<any> => {
+): Promise<void> => {
   try {
     const { boardId } = req.params;
-
-    const tasks = await Task.find({ boardId }).populate(
-      "assignees",
-      "name email avatar",
-    );
-
-    return res.status(200).json({ success: true, tasks });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error fetching tasks", error });
+    const tasks = await Task.find({ boardId });
+    res.json(tasks);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
 };
 
 export const updateTaskPosition = async (
   req: AuthRequest,
   res: Response,
-): Promise<any> => {
+): Promise<void> => {
   try {
     const { taskId } = req.params;
-    const { column, order } = req.body;
+    const { status, position } = req.body;
 
     const task = await Task.findByIdAndUpdate(
       taskId,
-      { column, order },
+      {
+        ...(status && { status }),
+        ...(position !== undefined && { position }),
+      },
       { new: true },
     );
 
     if (!task) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Task not found" });
+      res.status(404).json({ message: "Task not found" });
+      return;
     }
 
-    return res.status(200).json({ success: true, task });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error updating task position",
-        error,
-      });
+    res.json(task);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
 };

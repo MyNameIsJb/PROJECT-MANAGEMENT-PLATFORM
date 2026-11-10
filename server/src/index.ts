@@ -69,7 +69,7 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`✅ Server is running at http://localhost:${PORT}`);
   console.log(
     `📋 Port loaded from: ${process.env.PORT ? ".env file" : "default (8000)"}`,

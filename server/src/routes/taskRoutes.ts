@@ -9,7 +9,6 @@ import {
 const router = Router();
 
 router.use(protect);
-
 router.post("/", createTask);
 router.get("/board/:boardId", getTasksByBoard);
 router.patch("/:taskId/position", updateTaskPosition);
