@@ -5,7 +5,7 @@ export default function Hero() {
   const { isAuthenticated, user, logout } = useAuthStore();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-950 px-4 text-center text-white">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-950 px-4 text-center text-white relative overflow-hidden">
       {/* Decorative backdrop glow */}
       <div className="absolute top-1/4 left-1/2 -z-10 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600/20 blur-3xl" />
 
@@ -23,19 +23,27 @@ export default function Hero() {
           drag-and-drop Kanban boards, and WebSocket collaboration.
         </p>
 
-        <div className="flex items-center justify-center gap-4 pt-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
           {isAuthenticated ? (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
               <span className="text-sm text-gray-300">
                 Welcome back,{" "}
                 <strong className="text-white">{user?.name}</strong>
               </span>
-              <button
-                onClick={logout}
-                className="rounded-lg bg-gray-800 px-5 py-2.5 text-sm font-medium hover:bg-gray-700 border border-gray-700 transition-colors"
-              >
-                Sign Out
-              </button>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/dashboard"
+                  className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/25"
+                >
+                  Go to Dashboard &rarr;
+                </Link>
+                <button
+                  onClick={logout}
+                  className="rounded-lg bg-gray-800 px-4 py-2.5 text-sm font-medium hover:bg-gray-700 border border-gray-700 text-red-400 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
           ) : (
             <>

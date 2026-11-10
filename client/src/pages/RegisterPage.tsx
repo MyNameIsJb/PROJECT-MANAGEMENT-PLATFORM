@@ -21,7 +21,7 @@ export default function RegisterPage() {
 
     try {
       await register(name, email, password);
-      navigate({ to: "/" });
+      navigate({ to: "/dashboard" });
     } catch (err: any) {
       setError(
         err.response?.data?.message || "Failed to register. Please try again.",
