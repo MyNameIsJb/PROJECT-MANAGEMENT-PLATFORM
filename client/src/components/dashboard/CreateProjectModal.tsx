@@ -3,11 +3,11 @@ import { useState } from "react";
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (project: {
+  onCreate: (data: {
     name: string;
     key: string;
-    description: string;
-  }) => void;
+    description?: string;
+  }) => Promise<void>;
 }
 
 export default function CreateProjectModal({
@@ -18,17 +18,31 @@ export default function CreateProjectModal({
   const [name, setName] = useState("");
   const [key, setKey] = useState("");
   const [description, setDescription] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !key) return;
-    onCreate({ name, key: key.toUpperCase(), description });
-    setName("");
-    setKey("");
-    setDescription("");
-    onClose();
+    if (!name || key.length < 2) {
+      setError("Name and a key of at least 2 letters are required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+      await onCreate({ name, key: key.toUpperCase(), description });
+      setName("");
+      setKey("");
+      setDescription("");
+      onClose();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleNameChange = (val: string) => {
@@ -81,7 +95,9 @@ export default function CreateProjectModal({
               required
               maxLength={5}
               value={key}
-              onChange={(e) => setKey(e.target.value.toUpperCase())}
+              onChange={(e) =>
+                setKey(e.target.value.replace(/[^a-zA-Z]/g, "").toUpperCase())
+              }
               placeholder="e.g. MAR"
               className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm font-mono text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
             />
@@ -100,19 +116,27 @@ export default function CreateProjectModal({
             />
           </div>
 
+          {error && (
+            <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+              {error}
+            </p>
+          )}
+
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
             <button
               type="button"
               onClick={onClose}
+              disabled={loading}
               className="rounded-lg px-4 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
+              disabled={loading}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20"
             >
-              Create Project
+              {loading ? "Creating..." : "Create Project"}
             </button>
           </div>
         </form>

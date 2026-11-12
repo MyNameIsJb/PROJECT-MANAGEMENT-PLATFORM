@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Project, Task } from "../types";
 import CreateProjectModal from "../components/dashboard/CreateProjectModal";
 import KanbanBoard from "../components/dashboard/KanbanBoard";
+import { useProjectStore } from "../store/projectStore";
 
 export default function DashboardPage() {
   const { user, logout } = useAuthStore();
@@ -56,6 +57,8 @@ export default function DashboardPage() {
       prev ? { ...prev, tasks: [...(prev.tasks || []), newTask] } : null,
     );
   };
+
+  const { createProject } = useProjectStore();
 
   return (
     <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
@@ -196,7 +199,7 @@ export default function DashboardPage() {
       <CreateProjectModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onCreate={handleCreateProject}
+        onCreate={createProject}
       />
     </div>
   );

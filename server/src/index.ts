@@ -6,9 +6,7 @@ import http from "http";
 import { Server } from "socket.io";
 
 import authRoutes from "./routes/authRoutes";
-import workspaceRoutes from "./routes/workspaceRoutes";
-import boardRoutes from "./routes/boardRoutes";
-import taskRoutes from "./routes/taskRoutes";
+import projectRoutes from "./routes/projectRoutes";
 
 dotenv.config();
 
@@ -37,9 +35,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
-app.use("/api/workspaces", workspaceRoutes);
-app.use("/api/boards", boardRoutes);
-app.use("/api/tasks", taskRoutes);
+app.use("/api/projects", projectRoutes);
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);

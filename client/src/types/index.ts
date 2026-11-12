@@ -42,6 +42,13 @@ export interface Project {
   name: string;
   key: string;
   description?: string;
-  tasks?: Task[];
-  createdAt?: string;
+  owner: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProjectInput {
+  name: string;
+  key: string;
+  description?: string;
 }
