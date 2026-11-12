@@ -1,9 +1,16 @@
 import { Router } from "express";
 import { protect } from "../middleware/authMiddleware";
-import { createProject } from "../controllers/projecController";
+import {
+  createProject,
+  getProjectById,
+  getProjects,
+} from "../controllers/projectController";
 
 const router = Router();
 
-router.post("/", protect, createProject);
+router.use(protect);
+
+router.route("/").get(getProjects).post(createProject);
+router.route("/:id").get(getProjectById);
 
 export default router;

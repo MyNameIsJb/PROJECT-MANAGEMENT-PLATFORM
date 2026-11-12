@@ -1,14 +1,21 @@
 import { useState } from "react";
+import type { CreateProjectInput } from "../../types";
 
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (data: {
-    name: string;
-    key: string;
-    description?: string;
-  }) => Promise<void>;
+  onCreate: (data: CreateProjectInput) => Promise<void>;
 }
+
+const generateKey = (name: string) => {
+  const letters = (s: string) => s.replace(/[^a-zA-Z]/g, "");
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const raw =
+    words.length >= 2
+      ? words.map((w) => letters(w).charAt(0)).join("")
+      : letters(words[0] ?? "");
+  return raw.slice(0, 3).toUpperCase();
+};
 
 export default function CreateProjectModal({
   isOpen,
@@ -17,15 +24,39 @@ export default function CreateProjectModal({
 }: CreateProjectModalProps) {
   const [name, setName] = useState("");
   const [key, setKey] = useState("");
+  const [keyTouched, setKeyTouched] = useState(false);
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
+  const resetForm = () => {
+    setName("");
+    setKey("");
+    setKeyTouched(false);
+    setDescription("");
+    setError("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleNameChange = (val: string) => {
+    setName(val);
+    if (!keyTouched) setKey(generateKey(val));
+  };
+
+  const handleKeyChange = (val: string) => {
+    setKeyTouched(val !== "");
+    setKey(val.replace(/[^a-zA-Z]/g, "").toUpperCase());
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || key.length < 2) {
+    if (!name.trim() || key.length < 2) {
       setError("Name and a key of at least 2 letters are required");
       return;
     }
@@ -33,28 +64,17 @@ export default function CreateProjectModal({
     try {
       setLoading(true);
       setError("");
-      await onCreate({ name, key: key.toUpperCase(), description });
-      setName("");
-      setKey("");
-      setDescription("");
+      await onCreate({
+        name: name.trim(),
+        key,
+        description: description.trim() || undefined,
+      });
+      resetForm();
       onClose();
     } catch (err: any) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleNameChange = (val: string) => {
-    setName(val);
-
-    if (!key || key.length <= 3) {
-      setKey(
-        val
-          .replace(/[^a-zA-Z]/g, "")
-          .slice(0, 3)
-          .toUpperCase(),
-      );
     }
   };
 
@@ -64,7 +84,8 @@ export default function CreateProjectModal({
         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
           <h3 className="text-lg font-bold">Create New Project</h3>
           <button
-            onClick={onClose}
+            type="button"
+            onClick={handleClose}
             className="text-gray-400 hover:text-white transition-colors cursor-pointer"
           >
             ✕
@@ -93,11 +114,10 @@ export default function CreateProjectModal({
             <input
               type="text"
               required
+              minLength={2}
               maxLength={5}
               value={key}
-              onChange={(e) =>
-                setKey(e.target.value.replace(/[^a-zA-Z]/g, "").toUpperCase())
-              }
+              onChange={(e) => handleKeyChange(e.target.value)}
               placeholder="e.g. MAR"
               className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm font-mono text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
             />
@@ -125,16 +145,16 @@ export default function CreateProjectModal({
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={loading}
-              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 transition-colors"
+              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Creating..." : "Create Project"}
             </button>

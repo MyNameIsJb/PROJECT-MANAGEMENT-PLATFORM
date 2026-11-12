@@ -16,13 +16,10 @@ export interface AuthUser {
   email: string;
 }
 
-export interface AuthRequest extends Request {
-  user?: IUser & { _id: any };
-}
-
 export interface IProject extends Document {
   name: string;
   key: string;
   description?: string;
   owner: Types.ObjectId;
+  members: Types.ObjectId[];
 }
