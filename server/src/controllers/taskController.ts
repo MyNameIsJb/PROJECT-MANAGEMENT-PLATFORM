@@ -6,7 +6,7 @@ import { Project } from "../models/Project";
 export const createTask = async (req: Request, res: Response): Promise<any> => {
   try {
     const { id } = req.params;
-    const { title, description, status, priority } = req.body;
+    const { title, description, status, priority, assignee } = req.body;
 
     if (!mongoose.isValidObjectId(id)) {
       return res
@@ -29,12 +29,32 @@ export const createTask = async (req: Request, res: Response): Promise<any> => {
         .json({ success: false, message: "Invalid priority" });
     }
 
-    const project = await Project.findOneAndUpdate(
-      { _id: id, members: req.user!.id },
+    const found = await Project.findOne({ _id: id, members: req.user!.id });
+    if (!found) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+
+    if (assignee) {
+      if (!mongoose.isValidObjectId(assignee)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid assignee id" });
+      }
+      if (!found.members.some((m) => m.equals(assignee))) {
+        return res.status(400).json({
+          success: false,
+          message: "Assignee must be a project member",
+        });
+      }
+    }
+
+    const project = await Project.findByIdAndUpdate(
+      id,
       { $inc: { issueCounter: 1 } },
       { new: true },
     );
-
     if (!project) {
       return res
         .status(404)
@@ -54,6 +74,7 @@ export const createTask = async (req: Request, res: Response): Promise<any> => {
       description,
       status: column,
       priority,
+      assignee: assignee || null,
       reporter: req.user!.id,
       position: last ? last.position + 1 : 0,
     });
@@ -65,7 +86,7 @@ export const createTask = async (req: Request, res: Response): Promise<any> => {
   }
 };
 
-export const getTasks = async (req: Request, res: Response) => {
+export const getTasks = async (req: Request, res: Response): Promise<any> => {
   try {
     const { id } = req.params;
 
@@ -83,11 +104,71 @@ export const getTasks = async (req: Request, res: Response) => {
         .json({ success: false, message: "Project not found" });
     }
 
-    const tasks = await Task.find({ project: id }).sort({ position: 1 });
+    const tasks = await Task.find({ project: id })
+      .sort({ position: 1 })
+      .populate("assignee", "name email");
 
     return res.json({ success: true, count: tasks.length, tasks });
   } catch (error) {
     console.error("getTasks error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const updateTask = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid task id" });
+    }
+
+    const task = await Task.findById(id);
+    if (!task) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Task not found" });
+    }
+
+    const project = await Project.findOne({
+      _id: task.project,
+      members: req.user!.id,
+    });
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Task not found" });
+    }
+
+    if ("assignee" in req.body) {
+      const { assignee } = req.body;
+
+      if (!assignee) {
+        task.assignee = null;
+      } else {
+        if (!mongoose.isValidObjectId(assignee)) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Invalid assignee id" });
+        }
+        if (!project.members.some((m) => m.equals(assignee))) {
+          return res.status(400).json({
+            success: false,
+            message: "Assignee must be a project member",
+          });
+        }
+        task.assignee = assignee;
+      }
+    }
+
+    await task.save();
+    await task.populate("assignee", "name email");
+
+    return res.json({ success: true, task });
+  } catch (error) {
+    console.error("updateTask error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };

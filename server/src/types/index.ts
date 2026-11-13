@@ -37,6 +37,7 @@ export interface ITask extends Document {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
+  assignee?: Types.ObjectId | null;
   reporter: Types.ObjectId;
   position: number;
   createdAt: Date;
