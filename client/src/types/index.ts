@@ -46,7 +46,8 @@ export interface Project {
   name: string;
   key: string;
   description?: string;
-  owner: string;
+  owner: ProjectMember;
+  members: ProjectMember[];
   createdAt: string;
   updatedAt: string;
 }
@@ -62,4 +63,10 @@ export interface CreateTaskInput {
   description?: string;
   priority?: TaskPriority;
   status?: TaskStatus;
+}
+
+export interface ProjectMember {
+  _id: string;
+  name: string;
+  email: string;
 }

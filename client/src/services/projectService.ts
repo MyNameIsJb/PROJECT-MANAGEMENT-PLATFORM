@@ -11,4 +11,9 @@ export const projectService = {
     const res = await api.get("/projects");
     return res.data.projects;
   },
+
+  addMember: async (projectId: string, email: string): Promise<Project> => {
+    const res = await api.post(`/projects/${projectId}/members`, { email });
+    return res.data.project;
+  },
 };

@@ -6,15 +6,19 @@ import Sidebar from "../components/layout/Sidebar";
 import { useTaskStore } from "../store/taskStore";
 import { TaskStatus, type CreateTaskInput } from "../types";
 import CreateTaskModal from "../components/dashboard/CreateTaskModal";
+import { useAuthStore } from "../store/authStore";
+import MembersModal from "../components/dashboard/MembersModal";
 
 export default function DashboardPage() {
-  const { projects, loading, error, fetchProjects, createProject } =
+  const { projects, loading, error, fetchProjects, createProject, addMember } =
     useProjectStore();
   const activeProject = useActiveProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { tasks, error: tasksError, fetchTasks, createTask } = useTaskStore();
   const activeProjectId = activeProject?._id;
   const [addTaskStatus, setAddTaskStatus] = useState<TaskStatus | null>(null);
+  const { user } = useAuthStore();
+  const [isMembersOpen, setIsMembersOpen] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -29,6 +33,13 @@ export default function DashboardPage() {
   const handleCreateTask = async (data: CreateTaskInput) => {
     if (!activeProject) return;
     await createTask(activeProject._id, data);
+  };
+
+  const isOwner = !!activeProject && activeProject.owner.email === user?.email;
+
+  const handleInvite = async (email: string) => {
+    if (!activeProject) return;
+    await addMember(activeProject._id, email);
   };
 
   return (
@@ -47,12 +58,35 @@ export default function DashboardPage() {
               </p>
             )}
           </div>
-          <button
-            onClick={openModal}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20 cursor-pointer"
-          >
-            + New Project
-          </button>
+
+          <div className="flex items-center gap-3">
+            {activeProject && (
+              <button
+                onClick={() => setIsMembersOpen(true)}
+                className="flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                <div className="flex -space-x-2">
+                  {activeProject.members.slice(0, 3).map((m) => (
+                    <span
+                      key={m._id}
+                      title={`${m.name} (${m.email})`}
+                      className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-gray-900 bg-blue-600/30 text-[10px] font-semibold uppercase text-blue-300"
+                    >
+                      {m.name.charAt(0)}
+                    </span>
+                  ))}
+                  Members ({activeProject.members.length})
+                </div>
+              </button>
+            )}
+
+            <button
+              onClick={openModal}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20 cursor-pointer"
+            >
+              + New Project
+            </button>
+          </div>
         </header>
 
         <div className="p-8 flex-1">
@@ -101,6 +135,14 @@ export default function DashboardPage() {
         status={addTaskStatus}
         onClose={() => setAddTaskStatus(null)}
         onCreate={handleCreateTask}
+      />
+
+      <MembersModal
+        isOpen={isMembersOpen}
+        onClose={() => setIsMembersOpen(false)}
+        project={activeProject}
+        canInvite={isOwner}
+        onInvite={handleInvite}
       />
     </div>
   );

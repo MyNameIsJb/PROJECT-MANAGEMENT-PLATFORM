@@ -9,6 +9,7 @@ interface ProjectState {
   error: string | null;
   fetchProjects: () => Promise<void>;
   createProject: (data: CreateProjectInput) => Promise<void>;
+  addMember: (projectId: string, email: string) => Promise<void>;
   setActiveProject: (id: string) => void;
   reset: () => void;
 }
@@ -36,6 +37,15 @@ export const useProjectStore = create<ProjectState>((set) => ({
     set((state) => ({
       projects: [project, ...state.projects],
       activeProjectId: project._id,
+    }));
+  },
+
+  addMember: async (projectId, email) => {
+    const updated = await projectService.addMember(projectId, email);
+    set((state) => ({
+      projects: state.projects.map((p) =>
+        p._id === updated._id ? updated : p,
+      ),
     }));
   },
 
