@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Task } from "../types";
+import type { CreateTaskInput, Task } from "../types";
 import { taskService } from "../services/taskService";
 
 interface TaskState {
@@ -8,6 +8,7 @@ interface TaskState {
   loading: boolean;
   error: string | null;
   fetchTasks: (projectId: string) => Promise<void>;
+  createTask: (projectId: string, data: CreateTaskInput) => Promise<void>;
   reset: () => void;
 }
 
@@ -29,6 +30,14 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       }
     } finally {
       if (get().projectId === projectId) set({ loading: false });
+    }
+  },
+
+  createTask: async (projectId, data) => {
+    const task = await taskService.create(projectId, data);
+
+    if (get().projectId === projectId) {
+      set((state) => ({ tasks: [...state.tasks, task] }));
     }
   },
 

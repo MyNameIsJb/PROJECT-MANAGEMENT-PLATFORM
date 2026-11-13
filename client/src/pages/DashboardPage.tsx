@@ -4,14 +4,17 @@ import KanbanBoard from "../components/dashboard/KanbanBoard";
 import { useActiveProject, useProjectStore } from "../store/projectStore";
 import Sidebar from "../components/layout/Sidebar";
 import { useTaskStore } from "../store/taskStore";
+import { TaskStatus, type CreateTaskInput } from "../types";
+import CreateTaskModal from "../components/dashboard/CreateTaskModal";
 
 export default function DashboardPage() {
   const { projects, loading, error, fetchProjects, createProject } =
     useProjectStore();
   const activeProject = useActiveProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { tasks, error: tasksError, fetchTasks } = useTaskStore();
+  const { tasks, error: tasksError, fetchTasks, createTask } = useTaskStore();
   const activeProjectId = activeProject?._id;
+  const [addTaskStatus, setAddTaskStatus] = useState<TaskStatus | null>(null);
 
   useEffect(() => {
     fetchProjects();
@@ -22,6 +25,11 @@ export default function DashboardPage() {
   }, [activeProjectId, fetchTasks]);
 
   const openModal = () => setIsModalOpen(true);
+
+  const handleCreateTask = async (data: CreateTaskInput) => {
+    if (!activeProject) return;
+    await createTask(activeProject._id, data);
+  };
 
   return (
     <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
@@ -61,7 +69,7 @@ export default function DashboardPage() {
                   {tasksError}
                 </p>
               )}
-              <KanbanBoard tasks={tasks} onAddTask={() => {}} />
+              <KanbanBoard tasks={tasks} onAddTask={setAddTaskStatus} />
             </>
           ) : (
             <div className="rounded-xl border border-dashed border-gray-800 p-12 text-center max-w-md mx-auto my-12">
@@ -87,6 +95,12 @@ export default function DashboardPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onCreate={createProject}
+      />
+
+      <CreateTaskModal
+        status={addTaskStatus}
+        onClose={() => setAddTaskStatus(null)}
+        onCreate={handleCreateTask}
       />
     </div>
   );

@@ -56,3 +56,10 @@ export interface CreateProjectInput {
   key: string;
   description?: string;
 }
+
+export interface CreateTaskInput {
+  title: string;
+  description?: string;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+}
