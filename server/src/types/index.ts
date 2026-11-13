@@ -1,5 +1,4 @@
-import { Request } from "express";
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 
 export interface IUser extends Document {
   _id: Types.ObjectId;
@@ -22,4 +21,24 @@ export interface IProject extends Document {
   description?: string;
   owner: Types.ObjectId;
   members: Types.ObjectId[];
+  issueCounter: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type TaskStatus = "todo" | "in_progress" | "done";
+export type TaskPriority = "low" | "medium" | "high";
+
+export interface ITask extends Document {
+  project: Types.ObjectId;
+  number: number;
+  key: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  reporter: Types.ObjectId;
+  position: number;
+  createdAt: Date;
+  updatedAt: Date;
 }

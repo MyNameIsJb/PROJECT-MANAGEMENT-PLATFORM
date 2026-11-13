@@ -14,6 +14,7 @@ const projectSchema = new Schema<IProject>(
     description: { type: String, trim: true, maxlength: 500 },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
     members: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    issueCounter: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
