@@ -3,16 +3,23 @@ import CreateProjectModal from "../components/dashboard/CreateProjectModal";
 import KanbanBoard from "../components/dashboard/KanbanBoard";
 import { useActiveProject, useProjectStore } from "../store/projectStore";
 import Sidebar from "../components/layout/Sidebar";
+import { useTaskStore } from "../store/taskStore";
 
 export default function DashboardPage() {
   const { projects, loading, error, fetchProjects, createProject } =
     useProjectStore();
   const activeProject = useActiveProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { tasks, error: tasksError, fetchTasks } = useTaskStore();
+  const activeProjectId = activeProject?._id;
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
+
+  useEffect(() => {
+    if (activeProjectId) fetchTasks(activeProjectId);
+  }, [activeProjectId, fetchTasks]);
 
   const openModal = () => setIsModalOpen(true);
 
@@ -48,7 +55,14 @@ export default function DashboardPage() {
           ) : loading && projects.length === 0 ? (
             <p className="text-sm text-gray-500">Loading projects...</p>
           ) : activeProject ? (
-            <KanbanBoard tasks={[]} onAddTask={() => {}} />
+            <>
+              {tasksError && (
+                <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                  {tasksError}
+                </p>
+              )}
+              <KanbanBoard tasks={tasks} onAddTask={() => {}} />
+            </>
           ) : (
             <div className="rounded-xl border border-dashed border-gray-800 p-12 text-center max-w-md mx-auto my-12">
               <h3 className="text-lg font-semibold text-gray-300">

@@ -91,7 +91,7 @@ export default function KanbanBoard({ tasks, onAddTask }: KanbanBoardProps) {
                     <div className="flex items-center justify-between pt-2 border-t border-gray-700/50 text-[11px] text-gray-400">
                       <span>{task.assignee || "Unassigned"}</span>
                       <span className="font-mono text-gray-500">
-                        #{task._id.slice(-4)}
+                        {task.key}
                       </span>
                     </div>
                   </div>

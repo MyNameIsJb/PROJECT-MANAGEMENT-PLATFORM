@@ -30,11 +30,15 @@ export interface AuthState {
 
 export interface Task {
   _id: string;
+  project: string;
+  key: string;
   title: string;
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
   assignee?: string;
+  position: number;
+  createdAt: string;
 }
 
 export interface Project {

@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useAuthStore } from "../../store/authStore";
 import { useActiveProject, useProjectStore } from "../../store/projectStore";
+import { useTaskStore } from "../../store/taskStore";
 
 interface SidebarProps {
   onNewProject: () => void;
@@ -14,6 +15,7 @@ export default function Sidebar({ onNewProject }: SidebarProps) {
 
   const handleLogout = () => {
     reset();
+    useTaskStore.getState().reset();
     logout();
     navigate({ to: "/login" });
   };
