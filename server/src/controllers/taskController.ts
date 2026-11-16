@@ -2,6 +2,18 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { Task, TASK_PRIORITIES, TASK_STATUSES } from "../models/Task";
 import { Project } from "../models/Project";
+import { emitToBoard } from "../socket";
+
+const broadcastTasks = async (projectId: mongoose.Types.ObjectId | string) => {
+  const tasks = await Task.find({ project: projectId })
+    .sort({ position: 1 })
+    .populate("assignee", "name email");
+
+  emitToBoard(String(projectId), "tasks_updated", {
+    projectId: String(projectId),
+    tasks,
+  });
+};
 
 export const createTask = async (req: Request, res: Response): Promise<any> => {
   try {
@@ -78,6 +90,8 @@ export const createTask = async (req: Request, res: Response): Promise<any> => {
       reporter: req.user!.id,
       position: last ? last.position + 1 : 0,
     });
+
+    broadcastTasks(project._id).catch(console.error);
 
     return res.status(201).json({ success: true, task });
   } catch (error) {
@@ -166,6 +180,8 @@ export const updateTask = async (req: Request, res: Response): Promise<any> => {
     await task.save();
     await task.populate("assignee", "name email");
 
+    broadcastTasks(task.project).catch(console.error);
+
     return res.json({ success: true, task });
   } catch (error) {
     console.error("updateTask error:", error);
@@ -246,6 +262,11 @@ export const moveTask = async (req: Request, res: Response): Promise<any> => {
     const tasks = await Task.find({ project: task.project })
       .sort({ position: 1 })
       .populate("assignee", "name email");
+
+    emitToBoard(String(task.project), "tasks_updated", {
+      projectId: String(task.project),
+      tasks,
+    });
 
     return res.json({ success: true, tasks });
   } catch (error) {
