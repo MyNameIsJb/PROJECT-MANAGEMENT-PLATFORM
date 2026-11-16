@@ -11,12 +11,14 @@ import taskRoutes from "./routes/taskRoutes";
 
 dotenv.config();
 
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+
 const app: Application = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: CLIENT_URL,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   },
@@ -27,7 +29,7 @@ const PORT = process.env.PORT || 8000;
 connectDB();
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: CLIENT_URL,
   credentials: true,
 };
 

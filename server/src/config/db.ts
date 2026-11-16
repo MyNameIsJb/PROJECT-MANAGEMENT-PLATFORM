@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const connectDB = async () => {
   try {
     const mongoDBUri =
-      process.env.MONGODBURI ||
+      process.env.MONGODB_URI ||
       "mongodb://localhost:27017/project-management-platform";
 
     const connection = await mongoose.connect(mongoDBUri);
