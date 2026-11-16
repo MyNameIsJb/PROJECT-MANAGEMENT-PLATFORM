@@ -172,3 +172,84 @@ export const updateTask = async (req: Request, res: Response): Promise<any> => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const moveTask = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { id } = req.params;
+    const { status, position } = req.body;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid task id" });
+    }
+    if (!TASK_STATUSES.includes(status)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid status" });
+    }
+
+    if (!Number.isInteger(position) || position < 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Position must be a whole number" });
+    }
+
+    const task = await Task.findById(id);
+    if (!task) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Task not found" });
+    }
+
+    const fromStatus = task.status;
+
+    const destination = await Task.find({
+      project: task.project,
+      status,
+      _id: { $ne: task._id },
+    })
+      .sort({ position: 1 })
+      .select("_id");
+
+    const orderedIds = destination.map((t) => t._id);
+    orderedIds.splice(Math.min(position, orderedIds.length), 0, task._id);
+
+    const ops: any[] = orderedIds.map((taskId, index) => ({
+      updateOne: {
+        filter: { _id: taskId },
+        update: { $set: { status, position: index } },
+      },
+    }));
+
+    if (fromStatus !== status) {
+      const source = await Task.find({
+        project: task.project,
+        status: fromStatus,
+        _id: { $ne: task._id },
+      })
+        .sort({ position: 1 })
+        .select("_id");
+
+      source.forEach((t, index) => {
+        ops.push({
+          updateOne: {
+            filter: { _id: t.id },
+            update: { $set: { position: index } },
+          },
+        });
+      });
+    }
+
+    await Task.bulkWrite(ops);
+
+    const tasks = await Task.find({ project: task.project })
+      .sort({ position: 1 })
+      .populate("assignee", "name email");
+
+    return res.json({ success: true, tasks });
+  } catch (error) {
+    console.error("moveTask error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
