@@ -1,4 +1,4 @@
-import type { CreateTaskInput, Task } from "../types";
+import type { CreateTaskInput, Task, TaskStatus } from "../types";
 import api from "./api";
 
 export const taskService = {
@@ -15,5 +15,14 @@ export const taskService = {
   assign: async (taskId: string, assignee: string | null): Promise<Task> => {
     const res = await api.patch(`/tasks/${taskId}`, { assignee });
     return res.data.task;
+  },
+
+  move: async (
+    taskId: string,
+    status: TaskStatus,
+    position: number,
+  ): Promise<Task[]> => {
+    const res = await api.patch(`/tasks/${taskId}/move`, { status, position });
+    return res.data.tasks;
   },
 };

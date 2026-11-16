@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { CreateTaskInput, Task } from "../types";
+import type { CreateTaskInput, Task, TaskStatus } from "../types";
 import { taskService } from "../services/taskService";
 
 interface TaskState {
@@ -10,6 +10,11 @@ interface TaskState {
   fetchTasks: (projectId: string) => Promise<void>;
   createTask: (projectId: string, data: CreateTaskInput) => Promise<void>;
   assignTask: (taskId: string, assignee: string | null) => Promise<void>;
+  moveTask: (
+    taskId: string,
+    status: TaskStatus,
+    position: number,
+  ) => Promise<void>;
   reset: () => void;
 }
 
@@ -51,6 +56,51 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       }));
     } catch (err: any) {
       set({ error: err.response?.data?.message || "Failed to updated task" });
+    }
+  },
+
+  moveTask: async (taskId, status, position) => {
+    const previous = get().tasks;
+    const projectId = get().projectId;
+    const moving = previous.find((t) => t._id === taskId);
+    if (!moving) return;
+
+    const byPosition = (a: Task, b: Task) => a.position - b.position;
+    const others = previous.filter((t) => t._id !== taskId);
+
+    const destination = others
+      .filter((t) => t.status === status)
+      .sort(byPosition);
+    destination.splice(position, 0, { ...moving, status });
+
+    const source =
+      moving.status !== status
+        ? others.filter((t) => t.status === moving.status).sort(byPosition)
+        : [];
+
+    const rest = others.filter(
+      (t) => t.status !== status && t.status !== moving.status,
+    );
+
+    set({
+      error: null,
+      tasks: [
+        ...rest,
+        ...source.map((t, i) => ({ ...t, position: i })),
+        ...destination.map((t, i) => ({ ...t, position: i })),
+      ],
+    });
+
+    try {
+      const tasks = await taskService.move(taskId, status, position);
+      if (get().projectId === projectId) set({ tasks });
+    } catch (err: any) {
+      if (get().projectId === projectId) {
+        set({
+          tasks: previous,
+          error: err.response?.data?.message || "Failed to move task",
+        });
+      }
     }
   },
 

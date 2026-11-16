@@ -20,6 +20,7 @@ export default function DashboardPage() {
     fetchTasks,
     createTask,
     assignTask,
+    moveTask,
   } = useTaskStore();
   const activeProjectId = activeProject?._id;
   const [addTaskStatus, setAddTaskStatus] = useState<TaskStatus | null>(null);
@@ -114,6 +115,7 @@ export default function DashboardPage() {
                 members={activeProject.members}
                 onAddTask={setAddTaskStatus}
                 onAssign={assignTask}
+                onMoveTask={moveTask}
               />
             </>
           ) : (
