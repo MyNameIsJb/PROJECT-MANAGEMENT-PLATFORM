@@ -1,8 +1,14 @@
 import { useState } from "react";
-import type { CreateTaskInput, TaskPriority, TaskStatus } from "../../types";
+import type {
+  CreateTaskInput,
+  ProjectMember,
+  TaskPriority,
+  TaskStatus,
+} from "../../types";
 
 interface CreateTaskModalProps {
   status: TaskStatus | null;
+  members: ProjectMember[];
   onClose: () => void;
   onCreate: (data: CreateTaskInput) => Promise<void>;
 }
@@ -15,6 +21,7 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
 
 export default function CreateTaskModal({
   status,
+  members,
   onClose,
   onCreate,
 }: CreateTaskModalProps) {
@@ -23,6 +30,7 @@ export default function CreateTaskModal({
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [assignee, setAssignee] = useState("");
 
   if (!status) return null;
 
@@ -31,6 +39,7 @@ export default function CreateTaskModal({
     setDescription("");
     setPriority("medium");
     setError("");
+    setAssignee("");
   };
 
   const handleClose = () => {
@@ -50,6 +59,7 @@ export default function CreateTaskModal({
         description: description.trim() || undefined,
         priority,
         status,
+        assignee: assignee || undefined,
       });
       resetForm();
       onClose();
@@ -122,6 +132,30 @@ export default function CreateTaskModal({
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-gray-400 mb-1">
+              Assignee
+            </label>
+            <select
+              value={assignee}
+              onChange={(e) => setAssignee(e.target.value)}
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none [color-scheme:dark]"
+            >
+              <option value="" className="bg-gray-800 text-white">
+                Unassigned
+              </option>
+              {members.map((m) => (
+                <option
+                  key={m._id}
+                  value={m._id}
+                  className="bg-gray-800 text-white"
+                >
+                  {m.name}
+                </option>
+              ))}
             </select>
           </div>
 

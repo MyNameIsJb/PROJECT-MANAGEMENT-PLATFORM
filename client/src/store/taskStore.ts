@@ -9,6 +9,7 @@ interface TaskState {
   error: string | null;
   fetchTasks: (projectId: string) => Promise<void>;
   createTask: (projectId: string, data: CreateTaskInput) => Promise<void>;
+  assignTask: (taskId: string, assignee: string | null) => Promise<void>;
   reset: () => void;
 }
 
@@ -38,6 +39,18 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
     if (get().projectId === projectId) {
       set((state) => ({ tasks: [...state.tasks, task] }));
+    }
+  },
+
+  assignTask: async (taskId, assignee) => {
+    try {
+      set({ error: null });
+      const updated = await taskService.assign(taskId, assignee);
+      set((state) => ({
+        tasks: state.tasks.map((t) => (t._id === updated._id ? updated : t)),
+      }));
+    } catch (err: any) {
+      set({ error: err.response?.data?.message || "Failed to updated task" });
     }
   },
 

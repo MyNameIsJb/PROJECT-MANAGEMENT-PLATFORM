@@ -14,7 +14,13 @@ export default function DashboardPage() {
     useProjectStore();
   const activeProject = useActiveProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { tasks, error: tasksError, fetchTasks, createTask } = useTaskStore();
+  const {
+    tasks,
+    error: tasksError,
+    fetchTasks,
+    createTask,
+    assignTask,
+  } = useTaskStore();
   const activeProjectId = activeProject?._id;
   const [addTaskStatus, setAddTaskStatus] = useState<TaskStatus | null>(null);
   const { user } = useAuthStore();
@@ -103,7 +109,12 @@ export default function DashboardPage() {
                   {tasksError}
                 </p>
               )}
-              <KanbanBoard tasks={tasks} onAddTask={setAddTaskStatus} />
+              <KanbanBoard
+                tasks={tasks}
+                members={activeProject.members}
+                onAddTask={setAddTaskStatus}
+                onAssign={assignTask}
+              />
             </>
           ) : (
             <div className="rounded-xl border border-dashed border-gray-800 p-12 text-center max-w-md mx-auto my-12">
@@ -133,6 +144,7 @@ export default function DashboardPage() {
 
       <CreateTaskModal
         status={addTaskStatus}
+        members={activeProject?.members ?? []}
         onClose={() => setAddTaskStatus(null)}
         onCreate={handleCreateTask}
       />

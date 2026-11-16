@@ -11,4 +11,9 @@ export const taskService = {
     const res = await api.post(`/projects/${projectId}/tasks`, data);
     return res.data.task;
   },
+
+  assign: async (taskId: string, assignee: string | null): Promise<Task> => {
+    const res = await api.patch(`/tasks/${taskId}`, { assignee });
+    return res.data.task;
+  },
 };

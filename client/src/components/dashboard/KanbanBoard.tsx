@@ -1,8 +1,10 @@
-import type { Task, TaskStatus } from "../../types";
+import type { ProjectMember, Task, TaskStatus } from "../../types";
 
 interface KanbanBoardProps {
   tasks: Task[];
+  members: ProjectMember[];
   onAddTask: (status: "todo" | "in_progress" | "done") => void;
+  onAssign: (taskId: string, assigneeId: string | null) => void;
 }
 
 interface Column {
@@ -17,7 +19,12 @@ const COLUMNS: Column[] = [
   { id: "done", title: "Done", color: "border-emerald-500/50" },
 ];
 
-export default function KanbanBoard({ tasks, onAddTask }: KanbanBoardProps) {
+export default function KanbanBoard({
+  tasks,
+  members,
+  onAddTask,
+  onAssign,
+}: KanbanBoardProps) {
   const getPriorityColor = (priority: Task["priority"]) => {
     switch (priority) {
       case "high":
@@ -89,7 +96,26 @@ export default function KanbanBoard({ tasks, onAddTask }: KanbanBoardProps) {
                     )}
 
                     <div className="flex items-center justify-between pt-2 border-t border-gray-700/50 text-[11px] text-gray-400">
-                      <span>{task.assignee?.name ?? "Unassigned"}</span>
+                      <select
+                        value={task.assignee?._id ?? ""}
+                        onChange={(e) =>
+                          onAssign(task._id, e.target.value || null)
+                        }
+                        className="max-w-[60%] cursor-pointer truncate rounded border border-transparent bg-transparent py-0.5 text-[11px] text-gray-400 hover:border-gray-700 hover:text-white focus:border-blue-500 focus:outline-none [color-scheme:dark]"
+                      >
+                        <option value="" className="bg-gray-800 text-white">
+                          Unassigned
+                        </option>
+                        {members.map((m) => (
+                          <option
+                            key={m._id}
+                            value={m._id}
+                            className="bg-gray-800 text-white"
+                          >
+                            {m.name}
+                          </option>
+                        ))}
+                      </select>
                       <span className="font-mono text-gray-500">
                         {task.key}
                       </span>

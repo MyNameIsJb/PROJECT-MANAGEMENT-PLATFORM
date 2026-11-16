@@ -63,6 +63,7 @@ export interface CreateTaskInput {
   description?: string;
   priority?: TaskPriority;
   status?: TaskStatus;
+  assignee?: string;
 }
 
 export interface ProjectMember {
