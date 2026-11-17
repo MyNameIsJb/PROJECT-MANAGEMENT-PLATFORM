@@ -8,6 +8,7 @@ import { TaskStatus, type CreateTaskInput } from "../types";
 import CreateTaskModal from "../components/dashboard/CreateTaskModal";
 import { useAuthStore } from "../store/authStore";
 import MembersModal from "../components/dashboard/MembersModal";
+import { useBoardSocket } from "../hooks/useBoardSocket";
 
 export default function DashboardPage() {
   const { projects, loading, error, fetchProjects, createProject, addMember } =
@@ -23,6 +24,7 @@ export default function DashboardPage() {
     moveTask,
   } = useTaskStore();
   const activeProjectId = activeProject?._id;
+  useBoardSocket(activeProjectId);
   const [addTaskStatus, setAddTaskStatus] = useState<TaskStatus | null>(null);
   const { user } = useAuthStore();
   const [isMembersOpen, setIsMembersOpen] = useState(false);

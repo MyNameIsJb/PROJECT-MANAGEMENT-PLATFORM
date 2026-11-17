@@ -15,6 +15,7 @@ interface TaskState {
     status: TaskStatus,
     position: number,
   ) => Promise<void>;
+  applyRemoteTasks: (projectId: string, tasks: Task[]) => void;
   reset: () => void;
 }
 
@@ -102,6 +103,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         });
       }
     }
+  },
+
+  applyRemoteTasks: (projectId, tasks) => {
+    if (get().projectId === projectId) set({ tasks });
   },
 
   reset: () => set({ tasks: [], projectId: null, loading: false, error: null }),
