@@ -156,9 +156,31 @@ export const updateTask = async (req: Request, res: Response): Promise<any> => {
         .json({ success: false, message: "Task not found" });
     }
 
-    if ("assignee" in req.body) {
-      const { assignee } = req.body;
+    const { title, description, priority, assignee } = req.body;
 
+    if (title !== undefined) {
+      if (typeof title !== "string" || !title.trim()) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Title cannot be empty" });
+      }
+      task.title = title.trim();
+    }
+
+    if (description !== undefined) {
+      task.description = String(description).trim() || undefined;
+    }
+
+    if (priority !== undefined) {
+      if (!TASK_PRIORITIES.includes(priority)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid priority" });
+      }
+      task.priority = priority;
+    }
+
+    if ("assignee" in req.body) {
       if (!assignee) {
         task.assignee = null;
       } else {
@@ -271,6 +293,79 @@ export const moveTask = async (req: Request, res: Response): Promise<any> => {
     return res.json({ success: true, tasks });
   } catch (error) {
     console.error("moveTask error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const deleteTask = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid task id" });
+    }
+
+    const task = await Task.findById(id);
+    if (!task) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Task not found" });
+    }
+
+    const project = await Project.findOne({
+      _id: task.project,
+      members: req.user!.id,
+    });
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Task not found" });
+    }
+
+    const isOwner = project.owner.equals(req.user!.id);
+    const isReporter = task.reporter.equals(req.user!.id);
+    if (!isOwner && !isReporter) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Only the project owner or the task creator can delete this task",
+      });
+    }
+
+    await task.deleteOne();
+
+    const remaining = await Task.find({
+      project: task.project,
+      status: task.status,
+    })
+      .sort({ position: 1 })
+      .select("_id");
+
+    if (remaining.length > 0) {
+      await Task.bulkWrite(
+        remaining.map((t, index) => ({
+          updateOne: {
+            filter: { _id: t._id },
+            update: { $set: { position: index } },
+          },
+        })),
+      );
+    }
+
+    const tasks = await Task.find({ project: task.project })
+      .sort({ position: 1 })
+      .populate("assignee", "name email");
+
+    emitToBoard(String(task.project), "task_updated", {
+      projectId: String(task.project),
+      tasks,
+    });
+
+    return res.json({ success: true, tasks });
+  } catch (error) {
+    console.error("deleteTask error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
