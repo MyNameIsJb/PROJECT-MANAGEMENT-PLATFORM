@@ -4,7 +4,9 @@ import { Task, TASK_PRIORITIES, TASK_STATUSES } from "../models/Task";
 import { Project } from "../models/Project";
 import { emitToBoard } from "../socket";
 
-const broadcastTasks = async (projectId: mongoose.Types.ObjectId | string) => {
+export const broadcastTasks = async (
+  projectId: mongoose.Types.ObjectId | string,
+) => {
   const tasks = await Task.find({ project: projectId })
     .sort({ position: 1 })
     .populate("assignee", "name email");

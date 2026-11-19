@@ -69,3 +69,15 @@ export const emitToBoard = (
 ) => {
   io?.to(`board:${projectId}`).emit(event, payload);
 };
+
+export const closeBoard = (projectId: string) => {
+  io?.in(`board:${projectId}`).socketsLeave(`board:${projectId}`);
+};
+
+export const kickFromBoard = async (projectId: string, userId: string) => {
+  if (!io) return;
+  const sockets = await io.in(`board:${projectId}`).fetchSockets();
+  sockets
+    .filter((s) => s.data.userId === userId)
+    .forEach((s) => s.leave(`board:${projectId}`));
+};

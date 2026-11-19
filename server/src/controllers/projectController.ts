@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import { Project } from "../models/Project";
 import mongoose from "mongoose";
 import { User } from "../models/User";
+import { Task } from "../models/Task";
+import { emitToBoard, closeBoard, kickFromBoard } from "../socket";
+import { broadcastTasks } from "./taskController";
 
 export const createProject = async (
   req: Request,
@@ -149,6 +152,173 @@ export const addMember = async (req: Request, res: Response): Promise<any> => {
     return res.json({ success: true, project });
   } catch (error) {
     console.error("addMember error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const updateProject = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid project id" });
+    }
+
+    const project = await Project.findOne({ _id: id, members: req.user!.id });
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+    if (!project.owner.equals(req.user!.id)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the project owner can edit the project",
+      });
+    }
+
+    const { name, description } = req.body;
+
+    if (name !== undefined) {
+      if (typeof name !== "string" || !name.trim()) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Name cannot be empty" });
+      }
+      project.name = name.trim();
+    }
+    if (description !== undefined) {
+      project.description = String(description).trim() || undefined;
+    }
+
+    await project.save();
+    await project.populate([
+      { path: "owner", select: "name email" },
+      { path: "members", select: "name email" },
+    ]);
+
+    emitToBoard(String(project._id), "project_updated", { project });
+
+    return res.json({ success: true, project });
+  } catch (error: any) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error("updatedProject error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const deleteProject = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid project id" });
+    }
+
+    const project = await Project.findOne({ _id: id, members: req.user!.id });
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+    if (!project.owner.equals(req.user!.id)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the project owner can delete the project",
+      });
+    }
+
+    await Task.deleteMany({ project: project._id });
+    await project.deleteOne();
+
+    emitToBoard(String(project._id), "project_removed", {
+      projectId: String(project._id),
+    });
+    closeBoard(String(project._id));
+
+    return res.json({ success: true, message: "Project deleted" });
+  } catch (error) {
+    console.error("deleteProject error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const removeMember = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { id, userId } = req.params as { id: string; userId: string };
+
+    if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ success: false, message: "Invalid id" });
+    }
+
+    const project = await Project.findOne({ _id: id, members: req.user!.id });
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+
+    const isOwner = project.owner.equals(req.user!.id);
+    const isSelf = userId === req.user!.id;
+
+    if (!isOwner && !isSelf) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the project owner can remove other members",
+      });
+    }
+    if (project.owner.equals(userId)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "The project owner can't be removed. Delete the project instead",
+      });
+    }
+    if (!project.members.some((m) => m.equals(userId))) {
+      return res.status(404).json({
+        success: false,
+        message: "User is not a member of this project",
+      });
+    }
+
+    project.members = project.members.filter((m) => !m.equals(userId));
+    await project.save();
+
+    await Task.updateMany(
+      { project: project._id, assignee: userId },
+      { $set: { assignee: null } },
+    );
+
+    await project.populate([
+      { path: "owner", select: "name email" },
+      { path: "members", select: "name email" },
+    ]);
+
+    emitToBoard(String(project._id), "member_removed", {
+      projectId: String(project._id),
+      userId,
+    });
+    await kickFromBoard(String(project._id), userId);
+    broadcastTasks(project._id).catch(console.error);
+
+    return res.json({ success: true, project });
+  } catch (error) {
+    console.error("removedMember error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
