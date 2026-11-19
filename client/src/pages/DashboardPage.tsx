@@ -4,11 +4,16 @@ import KanbanBoard from "../components/dashboard/KanbanBoard";
 import { useActiveProject, useProjectStore } from "../store/projectStore";
 import Sidebar from "../components/layout/Sidebar";
 import { useTaskStore } from "../store/taskStore";
-import { TaskStatus, type CreateTaskInput } from "../types";
+import {
+  TaskStatus,
+  type CreateTaskInput,
+  type UpdateTaskInput,
+} from "../types";
 import CreateTaskModal from "../components/dashboard/CreateTaskModal";
 import { useAuthStore } from "../store/authStore";
 import MembersModal from "../components/dashboard/MembersModal";
 import { useBoardSocket } from "../hooks/useBoardSocket";
+import TaskDetailsModal from "../components/dashboard/TaskDetailsModal";
 
 export default function DashboardPage() {
   const { projects, loading, error, fetchProjects, createProject, addMember } =
@@ -22,7 +27,11 @@ export default function DashboardPage() {
     createTask,
     assignTask,
     moveTask,
+    updateTask,
+    deleteTask,
   } = useTaskStore();
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const selectedTask = tasks.find((t) => t._id === selectedTaskId) ?? null;
   const activeProjectId = activeProject?._id;
   useBoardSocket(activeProjectId);
   const [addTaskStatus, setAddTaskStatus] = useState<TaskStatus | null>(null);
@@ -49,6 +58,16 @@ export default function DashboardPage() {
   const handleInvite = async (email: string) => {
     if (!activeProject) return;
     await addMember(activeProject._id, email);
+  };
+
+  const handleSaveTask = async (data: UpdateTaskInput) => {
+    if (!selectedTask) return;
+    await updateTask(selectedTask._id, data);
+  };
+
+  const handleDeleteTask = async () => {
+    if (!selectedTask) return;
+    await deleteTask(selectedTask._id);
   };
 
   return (
@@ -118,6 +137,7 @@ export default function DashboardPage() {
                 onAddTask={setAddTaskStatus}
                 onAssign={assignTask}
                 onMoveTask={moveTask}
+                onOpenTask={setSelectedTaskId}
               />
             </>
           ) : (
@@ -159,6 +179,14 @@ export default function DashboardPage() {
         project={activeProject}
         canInvite={isOwner}
         onInvite={handleInvite}
+      />
+
+      <TaskDetailsModal
+        task={selectedTask}
+        members={activeProject?.members ?? []}
+        onClose={() => setSelectedTaskId(null)}
+        onSave={handleSaveTask}
+        onDelete={handleDeleteTask}
       />
     </div>
   );

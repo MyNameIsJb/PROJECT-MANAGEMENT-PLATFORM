@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import type { CreateTaskInput, Task, TaskStatus } from "../types";
+import type {
+  CreateTaskInput,
+  Task,
+  TaskStatus,
+  UpdateTaskInput,
+} from "../types";
 import { taskService } from "../services/taskService";
 
 interface TaskState {
@@ -10,6 +15,8 @@ interface TaskState {
   fetchTasks: (projectId: string) => Promise<void>;
   createTask: (projectId: string, data: CreateTaskInput) => Promise<void>;
   assignTask: (taskId: string, assignee: string | null) => Promise<void>;
+  updateTask: (taskId: string, data: UpdateTaskInput) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
   moveTask: (
     taskId: string,
     status: TaskStatus,
@@ -58,6 +65,19 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     } catch (err: any) {
       set({ error: err.response?.data?.message || "Failed to updated task" });
     }
+  },
+
+  updateTask: async (taskId, data) => {
+    const updated = await taskService.update(taskId, data);
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t._id === updated._id ? updated : t)),
+    }));
+  },
+
+  deleteTask: async (taskId) => {
+    const projectId = get().projectId;
+    const tasks = await taskService.remove(taskId);
+    if (get().projectId === projectId) set({ tasks });
   },
 
   moveTask: async (taskId, status, position) => {

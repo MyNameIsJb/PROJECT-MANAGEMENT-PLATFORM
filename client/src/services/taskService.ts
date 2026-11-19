@@ -1,4 +1,9 @@
-import type { CreateTaskInput, Task, TaskStatus } from "../types";
+import type {
+  CreateTaskInput,
+  Task,
+  TaskStatus,
+  UpdateTaskInput,
+} from "../types";
 import api from "./api";
 
 export const taskService = {
@@ -24,5 +29,15 @@ export const taskService = {
   ): Promise<Task[]> => {
     const res = await api.patch(`/tasks/${taskId}/move`, { status, position });
     return res.data.tasks;
+  },
+
+  update: async (taskId: string, data: UpdateTaskInput): Promise<Task> => {
+    const res = await api.patch(`/tasks/${taskId}`, data);
+    return res.data.task;
+  },
+
+  remove: async (taskId: string): Promise<Task[]> => {
+    const rest = await api.delete(`/tasks/${taskId}`);
+    return rest.data.tasks;
   },
 };

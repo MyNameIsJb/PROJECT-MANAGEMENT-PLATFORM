@@ -71,3 +71,10 @@ export interface ProjectMember {
   name: string;
   email: string;
 }
+
+export interface UpdateTaskInput {
+  title?: string;
+  description?: string;
+  priority?: TaskPriority;
+  assignee?: string | null;
+}

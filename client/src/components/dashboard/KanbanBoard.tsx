@@ -12,6 +12,7 @@ interface KanbanBoardProps {
   onAddTask: (status: "todo" | "in_progress" | "done") => void;
   onAssign: (taskId: string, assigneeId: string | null) => void;
   onMoveTask: (taskId: string, status: TaskStatus, position: number) => void;
+  onOpenTask: (taskId: string) => void;
 }
 
 interface Column {
@@ -32,6 +33,7 @@ export default function KanbanBoard({
   onAddTask,
   onAssign,
   onMoveTask,
+  onOpenTask,
 }: KanbanBoardProps) {
   const getPriorityColor = (priority: Task["priority"]) => {
     switch (priority) {
@@ -119,6 +121,7 @@ export default function KanbanBoard({
                             ref={dragProvided.innerRef}
                             {...dragProvided.draggableProps}
                             {...dragProvided.dragHandleProps}
+                            onClick={() => onOpenTask(task._id)}
                             className={`rounded-lg border bg-gray-800/80 p-4 shadow-sm cursor-grab active:cursor-grabbing ${
                               dragSnapshot.isDragging
                                 ? "border-blue-500/60 shadow-lg shadow-blue-500/10"
@@ -147,6 +150,7 @@ export default function KanbanBoard({
                             <div className="flex items-center justify-between pt-2 border-t border-gray-700/50 text-[11px] text-gray-400">
                               <select
                                 value={task.assignee?._id ?? ""}
+                                onClick={(e) => e.stopPropagation()}
                                 onChange={(e) =>
                                   onAssign(task._id, e.target.value || null)
                                 }
