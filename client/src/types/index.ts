@@ -78,3 +78,8 @@ export interface UpdateTaskInput {
   priority?: TaskPriority;
   assignee?: string | null;
 }
+
+export interface UpdateProjectInput {
+  name?: string;
+  description?: string;
+}

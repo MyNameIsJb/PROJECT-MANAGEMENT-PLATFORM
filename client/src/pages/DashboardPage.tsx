@@ -7,6 +7,8 @@ import { useTaskStore } from "../store/taskStore";
 import {
   TaskStatus,
   type CreateTaskInput,
+  type ProjectMember,
+  type UpdateProjectInput,
   type UpdateTaskInput,
 } from "../types";
 import CreateTaskModal from "../components/dashboard/CreateTaskModal";
@@ -14,10 +16,20 @@ import { useAuthStore } from "../store/authStore";
 import MembersModal from "../components/dashboard/MembersModal";
 import { useBoardSocket } from "../hooks/useBoardSocket";
 import TaskDetailsModal from "../components/dashboard/TaskDetailsModal";
+import ProjectSettingsModal from "../components/dashboard/ProjectSettingsModal";
 
 export default function DashboardPage() {
-  const { projects, loading, error, fetchProjects, createProject, addMember } =
-    useProjectStore();
+  const {
+    projects,
+    loading,
+    error,
+    fetchProjects,
+    createProject,
+    addMember,
+    updateProject,
+    deleteProject,
+    removeMember,
+  } = useProjectStore();
   const activeProject = useActiveProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const {
@@ -36,7 +48,15 @@ export default function DashboardPage() {
   useBoardSocket(activeProjectId);
   const [addTaskStatus, setAddTaskStatus] = useState<TaskStatus | null>(null);
   const { user } = useAuthStore();
-  const [isMembersOpen, setIsMembersOpen] = useState(false);
+  const [membersProjectId, setMembersProjectId] = useState<string | null>(null);
+  const [settingsProjectId, setSettingsProjectId] = useState<string | null>(
+    null,
+  );
+
+  const membersProject =
+    projects.find((p) => p._id === membersProjectId) ?? null;
+  const settingsProject =
+    projects.find((p) => p._id === settingsProjectId) ?? null;
 
   useEffect(() => {
     fetchProjects();
@@ -58,6 +78,24 @@ export default function DashboardPage() {
   const handleInvite = async (email: string) => {
     if (!activeProject) return;
     await addMember(activeProject._id, email);
+  };
+
+  const handleRemoveMember = async (
+    member: ProjectMember,
+    leaving: boolean,
+  ) => {
+    if (!membersProject) return;
+    await removeMember(membersProject._id, member._id, leaving);
+  };
+
+  const handleSaveProject = async (data: UpdateProjectInput) => {
+    if (!settingsProject) return;
+    await updateProject(settingsProject._id, data);
+  };
+
+  const handleDeleteProject = async () => {
+    if (!settingsProject) return;
+    await deleteProject(settingsProject._id);
   };
 
   const handleSaveTask = async (data: UpdateTaskInput) => {
@@ -89,23 +127,34 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-3">
             {activeProject && (
-              <button
-                onClick={() => setIsMembersOpen(true)}
-                className="flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors cursor-pointer"
-              >
-                <div className="flex -space-x-2">
-                  {activeProject.members.slice(0, 3).map((m) => (
-                    <span
-                      key={m._id}
-                      title={`${m.name} (${m.email})`}
-                      className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-gray-900 bg-blue-600/30 text-[10px] font-semibold uppercase text-blue-300"
-                    >
-                      {m.name.charAt(0)}
-                    </span>
-                  ))}
+              <>
+                <button
+                  onClick={() => setMembersProjectId(activeProject._id)}
+                  className="flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  <div className="flex -space-x-2">
+                    {activeProject.members.slice(0, 3).map((m) => (
+                      <span
+                        key={m._id}
+                        title={`${m.name} (${m.email})`}
+                        className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-gray-900 bg-blue-600/30 text-[10px] font-semibold uppercase text-blue-300"
+                      >
+                        {m.name.charAt(0)}
+                      </span>
+                    ))}
+                  </div>
                   Members ({activeProject.members.length})
-                </div>
-              </button>
+                </button>
+
+                {isOwner && (
+                  <button
+                    onClick={() => setSettingsProjectId(activeProject._id)}
+                    className="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors cursor-pointer"
+                  >
+                    Settings
+                  </button>
+                )}
+              </>
             )}
 
             <button
@@ -174,11 +223,20 @@ export default function DashboardPage() {
       />
 
       <MembersModal
-        isOpen={isMembersOpen}
-        onClose={() => setIsMembersOpen(false)}
+        isOpen={membersProject !== null}
+        onClose={() => setMembersProjectId(null)}
         project={activeProject}
         canInvite={isOwner}
+        currentUserEmail={user?.email}
         onInvite={handleInvite}
+        onRemove={handleRemoveMember}
+      />
+
+      <ProjectSettingsModal
+        project={settingsProject}
+        onClose={() => setSettingsProjectId(null)}
+        onSave={handleSaveProject}
+        onDelete={handleDeleteProject}
       />
 
       <TaskDetailsModal

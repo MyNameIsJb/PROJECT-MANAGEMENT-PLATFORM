@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { CreateProjectInput, Project } from "../types";
+import type { CreateProjectInput, Project, UpdateProjectInput } from "../types";
 import { projectService } from "../services/projectService";
 
 interface ProjectState {
@@ -10,6 +10,13 @@ interface ProjectState {
   fetchProjects: () => Promise<void>;
   createProject: (data: CreateProjectInput) => Promise<void>;
   addMember: (projectId: string, email: string) => Promise<void>;
+  updateProject: (projectId: string, data: UpdateProjectInput) => Promise<void>;
+  deleteProject: (projectId: string) => Promise<void>;
+  removeMember: (
+    projectId: string,
+    userId: string,
+    leaving: boolean,
+  ) => Promise<void>;
   setActiveProject: (id: string) => void;
   reset: () => void;
 }
@@ -46,6 +53,31 @@ export const useProjectStore = create<ProjectState>((set) => ({
       projects: state.projects.map((p) =>
         p._id === updated._id ? updated : p,
       ),
+    }));
+  },
+
+  updateProject: async (projectId, data) => {
+    const updated = await projectService.update(projectId, data);
+    set((state) => ({
+      projects: state.projects.map((p) =>
+        p._id === updated._id ? updated : p,
+      ),
+    }));
+  },
+
+  deleteProject: async (projectId) => {
+    await projectService.remove(projectId);
+    set((state) => ({
+      projects: state.projects.filter((p) => p._id !== projectId),
+    }));
+  },
+
+  removeMember: async (projectId, userId, leaving) => {
+    const updated = await projectService.removeMember(projectId, userId);
+    set((state) => ({
+      projects: leaving
+        ? state.projects.filter((p) => p._id !== projectId)
+        : state.projects.map((p) => (p._id === updated._id ? updated : p)),
     }));
   },
 
