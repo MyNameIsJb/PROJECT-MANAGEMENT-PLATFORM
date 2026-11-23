@@ -5,6 +5,7 @@ import {
   type DropResult,
 } from "@hello-pangea/dnd";
 import type { ProjectMember, Task, TaskStatus } from "../../types";
+import { formatDueDate, getDueState } from "../../utils/dates";
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -147,6 +148,8 @@ export default function KanbanBoard({
                               </p>
                             )}
 
+                            <DueBadge task={task} />
+
                             <div className="flex items-center justify-between pt-2 border-t border-gray-700/50 text-[11px] text-gray-400">
                               <select
                                 value={task.assignee?._id ?? ""}
@@ -190,5 +193,31 @@ export default function KanbanBoard({
         })}
       </div>
     </DragDropContext>
+  );
+}
+
+function DueBadge({ task }: { task: Task }) {
+  if (!task.dueDate) return null;
+
+  const state = getDueState(task.dueDate, task.status);
+  const styles =
+    state === "overdue"
+      ? "bg-red-500/10 text-red-400 border-red-500/20"
+      : state === "today"
+        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+        : "bg-gray-500/10 text-gray-400 border-gray-500/20";
+  const label =
+    state === "today"
+      ? "Due today"
+      : `${state === "overdue" ? "Overdue" : "Due"} ${formatDueDate(task.dueDate)}`;
+
+  return (
+    <div className="mb-3">
+      <span
+        className={`inline-block rounded border px-2 py-0.5 text-[10px] font-semibold ${styles}`}
+      >
+        {label}
+      </span>
+    </div>
   );
 }

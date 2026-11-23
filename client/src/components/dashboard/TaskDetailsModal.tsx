@@ -5,6 +5,7 @@ import type {
   TaskPriority,
   UpdateTaskInput,
 } from "../../types";
+import { toDateInput } from "../../utils/dates";
 
 interface TaskDetailsModalProps {
   task: Task | null;
@@ -34,6 +35,7 @@ function TaskDetailsForm({
   const [description, setDescription] = useState(task.description ?? "");
   const [priority, setPriority] = useState<TaskPriority>(task.priority);
   const [assignee, setAssignee] = useState(task.assignee?._id ?? "");
+  const [dueDate, setDueDate] = useState(toDateInput(task.dueDate));
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,6 +47,7 @@ function TaskDetailsForm({
   if (priority !== task.priority) changes.priority = priority;
   if (assignee !== (task.assignee?._id ?? ""))
     changes.assignee = assignee || null;
+  if (dueDate !== toDateInput(task.dueDate)) changes.dueDate = dueDate || null;
 
   const canSave = Object.keys(changes).length > 0 && title.trim() !== "";
 
@@ -172,6 +175,29 @@ function TaskDetailsForm({
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <div className="mb-1 flex items-center justify-between">
+                <label className="block text-xs font-medium uppercase tracking-wider text-gray-400">
+                  Due date
+                </label>
+                {dueDate && (
+                  <button
+                    type="button"
+                    onClick={() => setDueDate("")}
+                    className="text-[11px] text-gray-500 hover:text-white transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none [color-scheme:dark]"
+              />
             </div>
           </div>
 

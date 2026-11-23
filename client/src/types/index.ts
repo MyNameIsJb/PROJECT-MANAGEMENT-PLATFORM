@@ -37,6 +37,7 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   assignee?: ProjectMember | null;
+  dueDate?: string | null;
   position: number;
   createdAt: string;
 }
@@ -64,6 +65,7 @@ export interface CreateTaskInput {
   priority?: TaskPriority;
   status?: TaskStatus;
   assignee?: string;
+  dueDate?: string;
 }
 
 export interface ProjectMember {
@@ -77,6 +79,7 @@ export interface UpdateTaskInput {
   description?: string;
   priority?: TaskPriority;
   assignee?: string | null;
+  dueDate?: string | null;
 }
 
 export interface UpdateProjectInput {

@@ -31,6 +31,7 @@ export default function CreateTaskModal({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [assignee, setAssignee] = useState("");
+  const [dueDate, setDueDate] = useState("");
 
   if (!status) return null;
 
@@ -40,6 +41,7 @@ export default function CreateTaskModal({
     setPriority("medium");
     setError("");
     setAssignee("");
+    setDueDate("");
   };
 
   const handleClose = () => {
@@ -60,6 +62,7 @@ export default function CreateTaskModal({
         priority,
         status,
         assignee: assignee || undefined,
+        dueDate: dueDate || undefined,
       });
       resetForm();
       onClose();
@@ -157,6 +160,18 @@ export default function CreateTaskModal({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-gray-400 mb-1">
+              Due Date (Optional)
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none [color-scheme:dark]"
+            />
           </div>
 
           {error && (
