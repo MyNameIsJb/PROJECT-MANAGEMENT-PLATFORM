@@ -14,6 +14,7 @@ const taskSchema = new Schema<ITask>(
     status: { type: String, enum: TASK_STATUSES, default: "todo" },
     priority: { type: String, enum: TASK_PRIORITIES, default: "medium" },
     assignee: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    dueDate: { type: Date, default: null },
     reporter: { type: Schema.Types.ObjectId, ref: "User", required: true },
     position: { type: Number, default: 0 },
   },

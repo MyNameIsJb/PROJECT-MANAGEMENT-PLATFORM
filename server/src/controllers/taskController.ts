@@ -17,10 +17,18 @@ export const broadcastTasks = async (
   });
 };
 
+const parseDueDate = (value: unknown): Date | null | undefined => {
+  if (value === null || value === "") return null;
+  if (typeof value !== "string") return undefined;
+  const date = new Date(value);
+  return isNaN(date.getTime()) ? undefined : date;
+};
+
 export const createTask = async (req: Request, res: Response): Promise<any> => {
   try {
     const { id } = req.params;
-    const { title, description, status, priority, assignee } = req.body;
+    const { title, description, status, priority, assignee, dueDate } =
+      req.body;
 
     if (!mongoose.isValidObjectId(id)) {
       return res
@@ -42,6 +50,8 @@ export const createTask = async (req: Request, res: Response): Promise<any> => {
         .status(400)
         .json({ success: false, message: "Invalid priority" });
     }
+
+    const due = dueDate === undefined ? null : parseDueDate(dueDate);
 
     const found = await Project.findOne({ _id: id, members: req.user!.id });
     if (!found) {
@@ -89,6 +99,7 @@ export const createTask = async (req: Request, res: Response): Promise<any> => {
       status: column,
       priority,
       assignee: assignee || null,
+      dueDate: due,
       reporter: req.user!.id,
       position: last ? last.position + 1 : 0,
     });
@@ -199,6 +210,16 @@ export const updateTask = async (req: Request, res: Response): Promise<any> => {
         }
         task.assignee = assignee;
       }
+    }
+
+    if ("dueDate" in req.body) {
+      const due = parseDueDate(req.body.dueDate);
+      if (due === undefined) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid due date" });
+      }
+      task.dueDate = due;
     }
 
     await task.save();

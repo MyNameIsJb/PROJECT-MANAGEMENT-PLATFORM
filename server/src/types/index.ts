@@ -40,6 +40,7 @@ export interface ITask extends Document {
   assignee?: Types.ObjectId | null;
   reporter: Types.ObjectId;
   position: number;
+  dueDate?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
