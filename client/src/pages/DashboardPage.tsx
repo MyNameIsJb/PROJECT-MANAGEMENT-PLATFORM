@@ -17,6 +17,13 @@ import MembersModal from "../components/dashboard/MembersModal";
 import { useBoardSocket } from "../hooks/useBoardSocket";
 import TaskDetailsModal from "../components/dashboard/TaskDetailsModal";
 import ProjectSettingsModal from "../components/dashboard/ProjectSettingsModal";
+import {
+  EMPTY_FILTERS,
+  filterTasks,
+  hasActiveFilters,
+  type TaskFilters,
+} from "../utils/filterTasks";
+import FilterBar from "../components/dashboard/FilterBar";
 
 export default function DashboardPage() {
   const {
@@ -52,6 +59,20 @@ export default function DashboardPage() {
   const [settingsProjectId, setSettingsProjectId] = useState<string | null>(
     null,
   );
+  const [filterState, setFilterState] = useState<{
+    projectId: string | null;
+    filters: TaskFilters;
+  }>({ projectId: null, filters: EMPTY_FILTERS });
+
+  const filters =
+    filterState.projectId === (activeProjectId ?? null)
+      ? filterState.filters
+      : EMPTY_FILTERS;
+
+  const setFilters = (next: TaskFilters) =>
+    setFilterState({ projectId: activeProjectId ?? null, filters: next });
+
+  const visibleTasks = filterTasks(tasks, filters);
 
   const membersProject =
     projects.find((p) => p._id === membersProjectId) ?? null;
@@ -180,13 +201,22 @@ export default function DashboardPage() {
                   {tasksError}
                 </p>
               )}
+              <FilterBar
+                filters={filters}
+                members={activeProject.members}
+                shownCount={visibleTasks.length}
+                totalCount={tasks.length}
+                onChange={setFilters}
+              />
+
               <KanbanBoard
-                tasks={tasks}
+                tasks={visibleTasks}
                 members={activeProject.members}
                 onAddTask={setAddTaskStatus}
                 onAssign={assignTask}
                 onMoveTask={moveTask}
                 onOpenTask={setSelectedTaskId}
+                filtersActive={hasActiveFilters(filters)}
               />
             </>
           ) : (

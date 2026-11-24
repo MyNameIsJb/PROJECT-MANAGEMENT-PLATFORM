@@ -14,6 +14,7 @@ interface KanbanBoardProps {
   onAssign: (taskId: string, assigneeId: string | null) => void;
   onMoveTask: (taskId: string, status: TaskStatus, position: number) => void;
   onOpenTask: (taskId: string) => void;
+  filtersActive: boolean;
 }
 
 interface Column {
@@ -35,6 +36,7 @@ export default function KanbanBoard({
   onAssign,
   onMoveTask,
   onOpenTask,
+  filtersActive,
 }: KanbanBoardProps) {
   const getPriorityColor = (priority: Task["priority"]) => {
     switch (priority) {
@@ -107,7 +109,9 @@ export default function KanbanBoard({
                     {columnTasks.length === 0 &&
                       !dropSnapshot.isDraggingOver && (
                         <div className="rounded-lg border border-dashed border-gray-800 p-6 text-center text-xs text-gray-500">
-                          No tasks in {col.title.toLocaleLowerCase()}
+                          {filtersActive
+                            ? "No matching tasks"
+                            : `No tasks in ${col.title.toLocaleLowerCase()}`}
                         </div>
                       )}
 
@@ -116,6 +120,7 @@ export default function KanbanBoard({
                         key={task._id}
                         draggableId={task._id}
                         index={index}
+                        isDragDisabled={filtersActive}
                       >
                         {(dragProvided, dragSnapshot) => (
                           <div
@@ -123,7 +128,11 @@ export default function KanbanBoard({
                             {...dragProvided.draggableProps}
                             {...dragProvided.dragHandleProps}
                             onClick={() => onOpenTask(task._id)}
-                            className={`rounded-lg border bg-gray-800/80 p-4 shadow-sm cursor-grab active:cursor-grabbing ${
+                            className={`rounded-lg border bg-gray-800/80 p-4 shadow-sm ${
+                              filtersActive
+                                ? "cursor-pointer"
+                                : "cursor-grab active:cursor-grabbing"
+                            } ${
                               dragSnapshot.isDragging
                                 ? "border-blue-500/60 shadow-lg shadow-blue-500/10"
                                 : "border-gray-800 hover:border-gray-700"
