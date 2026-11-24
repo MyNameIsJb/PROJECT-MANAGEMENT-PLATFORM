@@ -5,6 +5,7 @@ import { User } from "../models/User";
 import { Task } from "../models/Task";
 import { emitToBoard, closeBoard, kickFromBoard } from "../socket";
 import { broadcastTasks } from "./taskController";
+import { Comment } from "../models/Comment";
 
 export const createProject = async (
   req: Request,
@@ -241,6 +242,7 @@ export const deleteProject = async (
     }
 
     await Task.deleteMany({ project: project._id });
+    await Comment.deleteMany({ project: project._id });
     await project.deleteOne();
 
     emitToBoard(String(project._id), "project_removed", {

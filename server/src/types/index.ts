@@ -44,3 +44,12 @@ export interface ITask extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface IComment extends Document {
+  task: Types.ObjectId;
+  project: Types.ObjectId;
+  author: Types.ObjectId;
+  text: string;
+  createdAt: Date;
+  updatedAt: Date;
+}

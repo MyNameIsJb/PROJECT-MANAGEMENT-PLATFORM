@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { Task, TASK_PRIORITIES, TASK_STATUSES } from "../models/Task";
 import { Project } from "../models/Project";
 import { emitToBoard } from "../socket";
+import { Comment } from "../models/Comment";
 
 export const broadcastTasks = async (
   projectId: mongoose.Types.ObjectId | string,
@@ -358,6 +359,7 @@ export const deleteTask = async (req: Request, res: Response): Promise<any> => {
     }
 
     await task.deleteOne();
+    await Comment.deleteMany({ task: task._id });
 
     const remaining = await Task.find({
       project: task.project,
