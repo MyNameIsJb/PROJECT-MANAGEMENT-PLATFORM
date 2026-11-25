@@ -78,7 +78,7 @@ export const createTask = async (req: Request, res: Response): Promise<any> => {
     const project = await Project.findByIdAndUpdate(
       id,
       { $inc: { issueCounter: 1 } },
-      { new: true },
+      { returnDocument: "after" },
     );
     if (!project) {
       return res

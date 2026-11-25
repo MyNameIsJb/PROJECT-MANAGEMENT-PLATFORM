@@ -11,6 +11,7 @@ import taskRoutes from "./routes/taskRoutes";
 import { initSocket } from "./socket";
 import { getJwtSecret } from "./config/jwt";
 import { apiLimiter, authLimiter } from "./middleware/rateLimit";
+import { createApp } from "./app";
 
 dotenv.config();
 getJwtSecret(); // stop right away if the secret is missing
@@ -18,9 +19,8 @@ getJwtSecret(); // stop right away if the secret is missing
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 const PORT = process.env.PORT || 8000;
 
-const app: Application = express();
+const app = createApp(CLIENT_URL);
 const server = http.createServer(app);
-
 initSocket(server, CLIENT_URL);
 
 // behind a hosting proxy (Render, Railway), so rate limits see the real IP
