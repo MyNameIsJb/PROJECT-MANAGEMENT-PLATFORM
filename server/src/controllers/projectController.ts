@@ -3,7 +3,7 @@ import { Project } from "../models/Project";
 import mongoose from "mongoose";
 import { User } from "../models/User";
 import { Task } from "../models/Task";
-import { emitToBoard, closeBoard, kickFromBoard } from "../socket";
+import { closeBoard, kickFromBoard, emitToUsers } from "../socket";
 import { broadcastTasks } from "./taskController";
 import { Comment } from "../models/Comment";
 
@@ -145,11 +145,15 @@ export const addMember = async (req: Request, res: Response): Promise<any> => {
 
     project.members.push(user._id);
     await project.save();
+    const memberIds = project.members.map((m) => String(m));
     await project.populate([
       { path: "owner", select: "name email" },
       { path: "members", select: "name email" },
     ]);
 
+    emitToUsers(memberIds, "project_updated", {
+      projectId: String(project._id),
+    });
     return res.json({ success: true, project });
   } catch (error) {
     console.error("addMember error:", error);
@@ -198,12 +202,15 @@ export const updateProject = async (
     }
 
     await project.save();
+    const memberIds = project.members.map((m) => String(m));
     await project.populate([
       { path: "owner", select: "name email" },
       { path: "members", select: "name email" },
     ]);
 
-    emitToBoard(String(project._id), "project_updated", { project });
+    emitToUsers(memberIds, "project_updated", {
+      projectId: String(project._id),
+    });
 
     return res.json({ success: true, project });
   } catch (error: any) {
@@ -241,11 +248,12 @@ export const deleteProject = async (
       });
     }
 
+    const memberIds = project.members.map((m) => String(m));
     await Task.deleteMany({ project: project._id });
     await Comment.deleteMany({ project: project._id });
     await project.deleteOne();
 
-    emitToBoard(String(project._id), "project_removed", {
+    emitToUsers(memberIds, "project_removed", {
       projectId: String(project._id),
     });
     closeBoard(String(project._id));
@@ -300,6 +308,7 @@ export const removeMember = async (
 
     project.members = project.members.filter((m) => !m.equals(userId));
     await project.save();
+    const affectedIds = [...project.members.map((m) => String(m)), userId];
 
     await Task.updateMany(
       { project: project._id, assignee: userId },
@@ -311,7 +320,7 @@ export const removeMember = async (
       { path: "members", select: "name email" },
     ]);
 
-    emitToBoard(String(project._id), "member_removed", {
+    emitToUsers(affectedIds, "member_removed", {
       projectId: String(project._id),
       userId,
     });

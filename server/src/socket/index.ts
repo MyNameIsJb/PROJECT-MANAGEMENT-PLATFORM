@@ -33,6 +33,7 @@ export const initSocket = (httpServer: HttpServer, clientUrl: string) => {
 
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.data.userId}`);
+    socket.join(`user:${socket.data.userId}`);
 
     socket.on(
       "join_board",
@@ -68,6 +69,15 @@ export const emitToBoard = (
   payload: unknown,
 ) => {
   io?.to(`board:${projectId}`).emit(event, payload);
+};
+
+export const emitToUsers = (
+  userIds: string[],
+  event: string,
+  payload: unknown,
+) => {
+  if (!io || userIds.length === 0) return;
+  io.to(userIds.map((id) => `user:${id}`)).emit(event, payload);
 };
 
 export const closeBoard = (projectId: string) => {
