@@ -3,6 +3,7 @@ import { useAuthStore } from "../store/authStore";
 import { Link, useNavigate } from "@tanstack/react-router";
 import AuthCard from "../components/auth/AuthCard";
 import InputField from "../components/auth/InputField";
+import { APP_NAME } from "../config/brand";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -34,7 +35,7 @@ export default function RegisterPage() {
   return (
     <AuthCard
       title="Get Started"
-      subtitle="Create your TaskFlow account"
+      subtitle={`Create your ${APP_NAME} account`}
       error={error}
     >
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

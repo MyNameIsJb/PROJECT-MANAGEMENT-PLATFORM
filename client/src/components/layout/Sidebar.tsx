@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useAuthStore } from "../../store/authStore";
 import { useActiveProject, useProjectStore } from "../../store/projectStore";
 import { useTaskStore } from "../../store/taskStore";
+import { APP_INITIALS, APP_NAME } from "../../config/brand";
 
 interface SidebarProps {
   onNewProject: () => void;
@@ -36,10 +37,10 @@ export default function Sidebar({ onNewProject }: SidebarProps) {
           className="flex items-center gap-2 px-2 cursor-pointer select-none hover:opacity-90 transition-opacity"
         >
           <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-blue-600/30">
-            TF
+            {APP_INITIALS}
           </div>
           <span className="font-extrabold tracking-tight text-lg bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-            TaskFlow PM
+            {APP_NAME} PM
           </span>
         </div>
 

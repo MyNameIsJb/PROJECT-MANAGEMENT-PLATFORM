@@ -27,7 +27,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Hello from TS + Express TaskFlow API");
+  res.send("Hello from TS + Express AMBAG API");
 });
 
 app.use((req, res) => {

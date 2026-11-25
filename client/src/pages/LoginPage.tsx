@@ -3,6 +3,7 @@ import { useAuthStore } from "../store/authStore";
 import { Link, useNavigate } from "@tanstack/react-router";
 import AuthCard from "../components/auth/AuthCard";
 import InputField from "../components/auth/InputField";
+import { APP_NAME } from "../config/brand";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -34,7 +35,7 @@ export default function LoginPage() {
   return (
     <AuthCard
       title="Welcome Back"
-      subtitle="Sign in to your TaskFlow workspace"
+      subtitle={`Sign in to your ${APP_NAME} workspace`}
       error={error}
     >
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
