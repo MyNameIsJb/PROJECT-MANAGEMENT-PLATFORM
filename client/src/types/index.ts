@@ -86,3 +86,11 @@ export interface UpdateProjectInput {
   name?: string;
   description?: string;
 }
+
+export interface TaskComment {
+  _id: string;
+  task: string;
+  author: ProjectMember;
+  text: string;
+  createdAt: string;
+}

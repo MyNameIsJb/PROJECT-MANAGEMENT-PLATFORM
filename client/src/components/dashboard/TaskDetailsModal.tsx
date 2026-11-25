@@ -6,6 +6,7 @@ import type {
   UpdateTaskInput,
 } from "../../types";
 import { toDateInput } from "../../utils/dates";
+import TaskComments from "./TaskComments";
 
 interface TaskDetailsModalProps {
   task: Task | null;
@@ -13,6 +14,8 @@ interface TaskDetailsModalProps {
   onClose: () => void;
   onSave: (data: UpdateTaskInput) => Promise<void>;
   onDelete: () => Promise<void>;
+  currentUserEmail?: string;
+  isOwner: boolean;
 }
 
 export default function TaskDetailsModal({
@@ -30,6 +33,8 @@ function TaskDetailsForm({
   onClose,
   onSave,
   onDelete,
+  currentUserEmail,
+  isOwner,
 }: Omit<TaskDetailsModalProps, "task"> & { task: Task }) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
@@ -83,7 +88,7 @@ function TaskDetailsForm({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="w-full max-w-lg rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl text-white">
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl text-white">
         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
           <div className="flex items-center gap-3">
             <span className="rounded bg-blue-600/20 px-2 py-0.5 font-mono text-xs text-blue-400">
@@ -258,6 +263,12 @@ function TaskDetailsForm({
             </div>
           </div>
         </form>
+
+        <TaskComments
+          taskId={task._id}
+          currentUserEmail={currentUserEmail}
+          isOwner={isOwner}
+        />
       </div>
     </div>
   );

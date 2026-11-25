@@ -272,6 +272,8 @@ export default function DashboardPage() {
       <TaskDetailsModal
         task={selectedTask}
         members={activeProject?.members ?? []}
+        currentUserEmail={user?.email}
+        isOwner={isOwner}
         onClose={() => setSelectedTaskId(null)}
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}

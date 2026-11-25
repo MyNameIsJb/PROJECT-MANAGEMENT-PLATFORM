@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { useTaskStore } from "../store/taskStore";
 import { socket } from "../services/socket";
-import type { Task } from "../types";
+import type { Task, TaskComment } from "../types";
 import { useProjectStore } from "../store/projectStore";
+import { useCommentStore } from "../store/commentStore";
 
 export function useBoardSocket(projectId: string | undefined) {
   const applyRemoteTasks = useTaskStore((s) => s.applyRemoteTasks);
   const fetchProjects = useProjectStore((s) => s.fetchProjects);
+  const applyRemoteComments = useCommentStore((s) => s.applyRemoteComments);
 
   useEffect(() => {
     const onError = (err: Error) => console.error("socket error:", err.message);
@@ -57,4 +59,19 @@ export function useBoardSocket(projectId: string | undefined) {
       socket.off("member_removed", refresh);
     };
   }, [fetchProjects]);
+
+  useEffect(() => {
+    const onComments = (payload: {
+      projectId: string;
+      taskId: string;
+      comments: TaskComment[];
+    }) => {
+      applyRemoteComments(payload.taskId, payload.comments);
+    };
+    socket.on("comments_updated", onComments);
+
+    return () => {
+      socket.off("comments_updated", onComments);
+    };
+  }, [applyRemoteComments]);
 }

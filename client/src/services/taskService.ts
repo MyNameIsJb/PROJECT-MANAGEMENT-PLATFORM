@@ -1,6 +1,7 @@
 import type {
   CreateTaskInput,
   Task,
+  TaskComment,
   TaskStatus,
   UpdateTaskInput,
 } from "../types";
@@ -39,5 +40,23 @@ export const taskService = {
   remove: async (taskId: string): Promise<Task[]> => {
     const rest = await api.delete(`/tasks/${taskId}`);
     return rest.data.tasks;
+  },
+
+  getComments: async (taskId: string): Promise<TaskComment[]> => {
+    const res = await api.get(`/tasks/${taskId}/comments`);
+    return res.data.comments;
+  },
+
+  addComment: async (taskId: string, text: string): Promise<TaskComment[]> => {
+    const res = await api.post(`/tasks/${taskId}/comments`, { text });
+    return res.data.comments;
+  },
+
+  deleteComment: async (
+    taskId: string,
+    commentId: string,
+  ): Promise<TaskComment[]> => {
+    const res = await api.delete(`/tasks/${taskId}/comments/${commentId}`);
+    return res.data.comments;
   },
 };
