@@ -2,11 +2,12 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User";
 import bcrypt from "bcryptjs";
+import { getJwtSecret } from "../config/jwt";
 
 const generateToken = (userId: string, email: string) => {
   return jwt.sign(
     { id: userId, email },
-    process.env.JWT_SECRET || "supersecretkey",
+    process.env.JWT_SECRET || getJwtSecret(),
     { expiresIn: "7d" },
   );
 };

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { getJwtSecret } from "../config/jwt";
 
 export const protect = (
   req: Request,
@@ -18,7 +19,7 @@ export const protect = (
   try {
     const decoded = jwt.verify(
       header.split(" ")[1],
-      process.env.JWT_SECRET || "supersecretkey",
+      process.env.JWT_SECRET || getJwtSecret(),
     ) as { id: string; email: string };
 
     req.user = { id: decoded.id, email: decoded.email };

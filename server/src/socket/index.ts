@@ -3,6 +3,7 @@ import type { Server as HttpServer } from "http";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Project } from "../models/Project";
+import { getJwtSecret } from "../config/jwt";
 
 let io: Server | null = null;
 
@@ -22,7 +23,7 @@ export const initSocket = (httpServer: HttpServer, clientUrl: string) => {
     try {
       const decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET || "supersecretkey",
+        process.env.JWT_SECRET || getJwtSecret(),
       ) as { id: string };
       socket.data.userId = decoded.id;
       next();
