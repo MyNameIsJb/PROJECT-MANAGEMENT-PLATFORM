@@ -83,7 +83,7 @@ function ProjectSettingsForm({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="w-full max-w-md rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl text-white">
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl text-white">
         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
           <h3 className="text-lg font-bold">Project Settings</h3>
           <button

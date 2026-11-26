@@ -63,6 +63,7 @@ export default function DashboardPage() {
     projectId: string | null;
     filters: TaskFilters;
   }>({ projectId: null, filters: EMPTY_FILTERS });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const filters =
     filterState.projectId === (activeProjectId ?? null)
@@ -129,31 +130,57 @@ export default function DashboardPage() {
     await deleteTask(selectedTask._id);
   };
 
+  const handleMoveSelectedTask = async (status: TaskStatus) => {
+    if (!selectedTask) return;
+    await moveTask(selectedTask._id, status, 1000000);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
-      <Sidebar onNewProject={openModal} />
+    <div className="flex h-dvh overflow-hidden bg-gray-950 text-white">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/60 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <Sidebar
+        onNewProject={openModal}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       <main className="flex-1 flex flex-col overflow-y-auto">
-        <header className="border-b border-gray-800 bg-gray-900/50 px-8 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">
-              {activeProject ? activeProject.name : "Workspace Dashboard"}
-            </h1>
-            {activeProject?.description && (
-              <p className="text-xs text-gray-400 mt-0.5">
-                {activeProject.description}
-              </p>
-            )}
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 bg-gray-900/50 px-4 py-3 md:px-8 md:py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open menu"
+              className="rounded-lg border border-gray-700 px-3 py-2 text-gray-300 md:hidden"
+            >
+              ☰
+            </button>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-bold tracking-tight md:text-xl">
+                {activeProject ? activeProject.name : "Workspace Dashboard"}
+              </h1>
+              {activeProject?.description && (
+                <p className="mt-0.5 hidden line-clamp-1 text-xs text-gray-400 sm:block">
+                  {activeProject.description}
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {activeProject && (
               <>
                 <button
                   onClick={() => setMembersProjectId(activeProject._id)}
-                  className="flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors cursor-pointer"
+                  className="flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 cursor-pointer"
                 >
-                  <div className="flex -space-x-2">
+                  <div className="hidden -space-x-2 sm:flex">
                     {activeProject.members.slice(0, 3).map((m) => (
                       <span
                         key={m._id}
@@ -170,7 +197,7 @@ export default function DashboardPage() {
                 {isOwner && (
                   <button
                     onClick={() => setSettingsProjectId(activeProject._id)}
-                    className="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors cursor-pointer"
+                    className="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 cursor-pointer"
                   >
                     Settings
                   </button>
@@ -180,14 +207,15 @@ export default function DashboardPage() {
 
             <button
               onClick={openModal}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20 cursor-pointer"
+              className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-500 cursor-pointer md:px-4"
             >
-              + New Project
+              <span className="hidden sm:inline">+ New Project</span>
+              <span className="sm:hidden">+ New</span>
             </button>
           </div>
         </header>
 
-        <div className="p-8 flex-1">
+        <div className="flex-1 p-4 md:p-8">
           {error ? (
             <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
               {error}
@@ -277,6 +305,7 @@ export default function DashboardPage() {
         onClose={() => setSelectedTaskId(null)}
         onSave={handleSaveTask}
         onDelete={handleDeleteTask}
+        onMove={handleMoveSelectedTask}
       />
     </div>
   );

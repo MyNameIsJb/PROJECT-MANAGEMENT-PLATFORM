@@ -6,9 +6,11 @@ import { APP_INITIALS, APP_NAME } from "../../config/brand";
 
 interface SidebarProps {
   onNewProject: () => void;
+  open: boolean;
+  onClose: () => void;
 }
 
-export default function Sidebar({ onNewProject }: SidebarProps) {
+export default function Sidebar({ onNewProject, open, onClose }: SidebarProps) {
   const { user, logout } = useAuthStore();
   const { projects, loading, setActiveProject, reset } = useProjectStore();
   const activeProject = useActiveProject();
@@ -30,7 +32,11 @@ export default function Sidebar({ onNewProject }: SidebarProps) {
     : "US";
 
   return (
-    <aside className="w-64 border-r border-gray-800 bg-gray-900 p-4 flex flex-col justify-between">
+    <aside
+      className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col justify-between border-r border-gray-800 bg-gray-900 p-4 transition-transform duration-200 md:static md:translate-x-0 ${
+        open ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
       <div className="space-y-6">
         <div
           onClick={() => navigate({ to: "/" })}
@@ -50,7 +56,10 @@ export default function Sidebar({ onNewProject }: SidebarProps) {
               Projects
             </span>
             <button
-              onClick={onNewProject}
+              onClick={() => {
+                onClose();
+                onNewProject();
+              }}
               className="text-xs text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
             >
               + New
@@ -68,7 +77,10 @@ export default function Sidebar({ onNewProject }: SidebarProps) {
               projects.map((p) => (
                 <button
                   key={p._id}
-                  onClick={() => setActiveProject(p._id)}
+                  onClick={() => {
+                    setActiveProject(p._id);
+                    onClose();
+                  }}
                   className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer ${
                     activeProject?._id === p._id
                       ? "bg-blue-600/10 text-blue-400 border border-blue-500/20"

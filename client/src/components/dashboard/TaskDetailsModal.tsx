@@ -3,6 +3,7 @@ import type {
   ProjectMember,
   Task,
   TaskPriority,
+  TaskStatus,
   UpdateTaskInput,
 } from "../../types";
 import { toDateInput } from "../../utils/dates";
@@ -16,6 +17,7 @@ interface TaskDetailsModalProps {
   onDelete: () => Promise<void>;
   currentUserEmail?: string;
   isOwner: boolean;
+  onMove: (status: TaskStatus) => Promise<void>;
 }
 
 export default function TaskDetailsModal({
@@ -35,6 +37,7 @@ function TaskDetailsForm({
   onDelete,
   currentUserEmail,
   isOwner,
+  onMove,
 }: Omit<TaskDetailsModalProps, "task"> & { task: Task }) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
@@ -86,6 +89,15 @@ function TaskDetailsForm({
     }
   };
 
+  const handleStatusChange = async (status: TaskStatus) => {
+    try {
+      setError("");
+      await onMove(status);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Something went wrong");
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
       <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl text-white">
@@ -134,6 +146,27 @@ function TaskDetailsForm({
               placeholder="Add more details..."
               className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-gray-400 mb-1">
+              Status
+            </label>
+            <select
+              value={task.status}
+              onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none [color-scheme:dark]"
+            >
+              <option value="todo" className="bg-gray-800 text-white">
+                To Do
+              </option>
+              <option value="in_progress" className="bg-gray-800 text-white">
+                In Progress
+              </option>
+              <option value="done" className="bg-gray-800 text-white">
+                Done
+              </option>
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
