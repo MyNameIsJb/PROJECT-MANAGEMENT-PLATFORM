@@ -4,8 +4,9 @@ A real-time project board for teams. Create projects, invite people, and move ta
 
 ![Board screenshot](docs/screenshot.png)
 
-**Live demo:** https://ambagpm.vercel.app/ (the free hosting tier sleeps when idle, so the first load can take about a minute)
-**Demo login:** https://ambagpm.vercel.app/
+**Live demo:** https://ambagpm.vercel.app/ _(the free hosting tier sleeps when idle, so the first load can take about a minute)_
+
+**Demo login:** https://ambagpm.vercel.app/login
 
 ## Features
 
