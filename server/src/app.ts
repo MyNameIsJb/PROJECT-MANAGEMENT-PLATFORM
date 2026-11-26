@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes";
 import projectRoutes from "./routes/projectRoutes";
 import taskRoutes from "./routes/taskRoutes";
 import { apiLimiter, authLimiter } from "./middleware/rateLimit";
+import { parseOrigins } from "./config/origins";
 
 export const createApp = (clientUrl: string): Application => {
   const app = express();
@@ -13,7 +14,7 @@ export const createApp = (clientUrl: string): Application => {
   if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
 
   app.use(helmet());
-  app.use(cors({ origin: clientUrl, credentials: true }));
+  app.use(cors({ origin: parseOrigins(clientUrl), credentials: true }));
   app.use(express.json({ limit: "100kb" }));
 
   app.use("/api", apiLimiter);

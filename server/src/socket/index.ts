@@ -4,13 +4,14 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { Project } from "../models/Project";
 import { getJwtSecret } from "../config/jwt";
+import { parseOrigins } from "../config/origins";
 
 let io: Server | null = null;
 
 export const initSocket = (httpServer: HttpServer, clientUrl: string) => {
   io = new Server(httpServer, {
     cors: {
-      origin: clientUrl,
+      origin: parseOrigins(clientUrl),
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
       credentials: true,
     },
