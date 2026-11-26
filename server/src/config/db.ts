@@ -4,7 +4,11 @@ const connectDB = async () => {
   try {
     const mongoDBUri =
       process.env.MONGODB_URI ||
-      "mongodb://localhost:27017/project-management-platform";
+      (process.env.NODE_ENV === "production"
+        ? ""
+        : "mongodb://localhost:27017/project-management-platform");
+
+    if (!mongoDBUri) throw new Error("MONGODB_URI is not set");
 
     const connection = await mongoose.connect(mongoDBUri);
     console.log("═══════════════════════════════════════");
