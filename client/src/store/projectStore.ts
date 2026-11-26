@@ -42,8 +42,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
   createProject: async (data) => {
     const project = await projectService.create(data);
     set((state) => ({
-      projects: [project, ...state.projects],
-      activeProjectId: project._id,
+      projects: state.projects.some((p) => p._id === project._id)
+        ? state.projects
+        : [project, ...state.projects],
+      activeProjectId: project._id, // open the new project right away
     }));
   },
 

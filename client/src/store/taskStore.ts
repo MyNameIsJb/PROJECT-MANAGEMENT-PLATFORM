@@ -51,7 +51,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     const task = await taskService.create(projectId, data);
 
     if (get().projectId === projectId) {
-      set((state) => ({ tasks: [...state.tasks, task] }));
+      set((state) => ({
+        tasks: state.tasks.some((t) => t._id === task._id)
+          ? state.tasks
+          : [...state.tasks, task],
+      }));
     }
   },
 
